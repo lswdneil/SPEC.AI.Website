@@ -38,7 +38,8 @@
   --line: rgba(255, 255, 255, 0.14);
   --line-soft: rgba(255, 255, 255, 0.08);
 
-  --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", Menlo, monospace;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, "SF Mono", Menlo,
+          "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", monospace;
   --sans: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC",
           -apple-system, "Segoe UI", system-ui, sans-serif;
   --radius: 10px;
