@@ -172,6 +172,18 @@ a { color: inherit; }
   box-shadow: 0 6px 18px rgba(194, 91, 67, 0.35);
 }
 
+/* 物理世界按钮（翡翠绿，taste-skill 单一 accent + AA 对比：白字 4.5:1+） */
+.nav-gh-physical {
+  background: #178a4d;
+  border-color: #178a4d;
+  color: #fff !important;
+}
+.nav-gh-physical:hover {
+  background: #1ea35c;
+  border-color: #1ea35c;
+  box-shadow: 0 6px 18px rgba(23, 138, 77, 0.35);
+}
+
 /* ---------- 语言下拉（最右上角，与 GitHub 按钮同尺寸） ---------- */
 .lang-select {
   font-family: var(--sans);
