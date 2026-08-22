@@ -150,7 +150,7 @@ window.I18N = {
   "hw-open-title": "开放能力与路线图",
   "hw-open-sub": "开放接口与协议支持更多扩展功能，厂商与开发者可直接对接。",
   "hw-r1-t": "REST API（75+ 路由）",
-  "hw-r1-c": "任务 · 会话 · 编排",
+  "hw-r1-c": "任务、会话、编排",
   "hw-r1-d": "全部业务操作可通过 API 触发",
   "hw-r2-t": "WebSocket 事件流",
   "hw-r2-c": "实时 agent 事件",

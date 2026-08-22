@@ -141,7 +141,7 @@ window.I18N = {
   "hw-open-title": "Open Capabilities & Roadmap",
   "hw-open-sub": "Open interfaces and protocols support further extensions; vendors and developers can connect directly.",
   "hw-r1-t": "REST API (75+ routes)",
-  "hw-r1-c": "Tasks · Sessions · Orchestration",
+  "hw-r1-c": "Tasks, Sessions, Orchestration",
   "hw-r1-d": "All business operations can be triggered via API",
   "hw-r2-t": "WebSocket Event Stream",
   "hw-r2-c": "Real-time agent events",
