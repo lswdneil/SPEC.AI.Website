@@ -145,7 +145,7 @@ window.I18N = {
   "hw-device-1-d": "主流の形態。Bluetooth でスマホに接続し、1号員工 の音声チャネルを利用。",
   "hw-device-1-h": "通話級マイク · 携帯音声入口",
   "hw-device-1-t": "AIイヤホン / 耳型",
-  "hw-devices-title": "対応デバイス",
+  "hw-devices-title": "対応するスマートハードウェア形態",
   "hw-sub": "AIハードウェアの接続とマッチング、データ収集・整理、AI処理、そしてさらなる拡張機能。",
   "hw-title": "フィジカル世界のAIハードウェア接続",
   "nav-hardware": "物理接続",

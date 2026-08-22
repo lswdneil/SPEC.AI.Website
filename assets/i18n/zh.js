@@ -112,7 +112,7 @@ window.I18N = {
   "nav-virtual": "虚拟接入",
   "hw-title": "物理世界的AI硬件接入",
   "hw-sub": "AI 智能硬件的接入与匹配、数据搜集整理与 AI 处理，以及更多扩展功能。",
-  "hw-devices-title": "支持的设备形态",
+  "hw-devices-title": "支持的智能硬件形态",
   "hw-device-1-t": "AI 耳机 / 耳塞",
   "hw-device-1-h": "通话级麦克风 · 随身语音入口",
   "hw-device-1-d": "主流形态，通过蓝牙接入手机，复用 1号员工 语音通道。",

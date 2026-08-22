@@ -145,7 +145,7 @@ window.I18N = {
   "hw-device-1-d": "가장 대중적인 형태. 블루투스로 스마트폰에 연결해 1호 직원의 음성 채널을 사용합니다.",
   "hw-device-1-h": "통화급 마이크 · 휴대용 음성 진입점",
   "hw-device-1-t": "AI 이어폰 / 이어버드",
-  "hw-devices-title": "지원 디바이스",
+  "hw-devices-title": "지원되는 스마트 하드웨어 형태",
   "hw-sub": "AI 하드웨어 접속과 매칭, 데이터 수집·정리, AI 처리, 그리고 더 많은 확장 기능.",
   "hw-title": "물리 세계 AI 하드웨어 접속",
   "nav-hardware": "물리 접속",

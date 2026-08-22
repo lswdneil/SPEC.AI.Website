@@ -103,7 +103,7 @@ window.I18N = {
   "nav-virtual": "Virtual Access",
   "hw-title": "Physical World AI Hardware Access",
   "hw-sub": "Access and matching of AI hardware devices, data collection and organization, AI processing, and more extended capabilities.",
-  "hw-devices-title": "Supported Device Forms",
+  "hw-devices-title": "Supported AI Hardware Forms",
   "hw-device-1-t": "AI Earbuds / Earphones",
   "hw-device-1-h": "Call-grade mic · Pocket voice entry",
   "hw-device-1-d": "Mainstream form; connects via Bluetooth to your phone, reusing Employee #1's voice channel.",
