@@ -30,11 +30,9 @@ window.I18N = {
   "tab-work": "채팅 워크스페이스",
   "tab-team": "멀티 에이전트 팀",
   "tab-office": "오피스 문서",
-  "tab-light": "라이트 테마",
   "cap-work": "스트리밍 응답 · 사고 과정 표시 · 도구 호출 상태 실시간 표시",
   "cap-team": "5가지 팀 전략 · 자동 팀 구성 · 인간 승인 흐름",
   "cap-office": "한 문장으로 Word / PPT / Excel · 11개 Office 스킬",
-  "cap-light": "라이트/다크 테마 지원 · 오른쪽 상단 색상으로 사이트 액센트 변경",
 
   "steps-title": "첫 직원을 고용하는 세 단계",
   "step-1-t": "다운로드 및 설치",
