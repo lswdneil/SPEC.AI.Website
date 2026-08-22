@@ -36,7 +36,7 @@ software-download-site/
 1. 把本目录推到一个新的 GitHub 仓库（网站仓库）。
 2. 修改 `data/releases.json`：
    - `product.repo` / `homepage` → 实际仓库与域名
-   - `platforms.windows.files[].url` → 你的安装包真实下载链接
+   - `platforms.windows.files[].url` → 您的安装包真实下载链接
    - `sha256` → 安装包真实校验值（本地 `certutil -hashfile 文件 SHA256` 或 `sha256sum 文件`）
    - `changelog` → 版本历史
 3. 本地预览：`python -m http.server 8080` → 打开 `http://localhost:8080`。
