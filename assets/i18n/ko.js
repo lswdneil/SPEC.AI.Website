@@ -1,7 +1,7 @@
 /* 1号员工官网 - 한국어 */
 window.I18N = {
-  "brand-quote": "Only those who will risk going too far can possibly find out how far one can go.",
-  "brand-quote-src": "T. S. Eliot",
+  "brand-quote": "너무 멀리 갈 위험을 감수하는 자만이, 자신이 얼마나 멀리 갈 수 있는지 알 수 있다.",
+  "brand-quote-src": "T. S. 엘리엇",
   "nav-download": "다운로드",
   "nav-changelog": "업데이트 로그",
   "nav-github": "GitHub",

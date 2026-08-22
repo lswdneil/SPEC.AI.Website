@@ -1,7 +1,7 @@
 /* 1号员工官网 - 日本語 */
 window.I18N = {
-  "brand-quote": "Only those who will risk going too far can possibly find out how far one can go.",
-  "brand-quote-src": "T. S. Eliot",
+  "brand-quote": "遠くへ行き過ぎる危険を冒す者だけが、どこまで行けるのかを知ることができる。",
+  "brand-quote-src": "T.S. エリオット",
   "nav-download": "ダウンロード",
   "nav-changelog": "更新履歴",
   "nav-github": "GitHub",
