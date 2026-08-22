@@ -81,9 +81,8 @@
     loadLangDict(lang, function () {
       state.lang = lang;
       document.documentElement.lang = LANG_ATTR[lang] || "zh-CN";
-      $all(".lang-btn").forEach(function (b) {
-        b.classList.toggle("active", b.getAttribute("data-lang") === lang);
-      });
+      var sel = $(".lang-select");
+      if (sel) sel.value = lang;
       try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
       applyStaticI18n();
       rerenderDynamic();
@@ -94,9 +93,10 @@
   function initLang() {
     var saved = "zh";
     try { saved = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { /* ignore */ }
-    $all(".lang-btn").forEach(function (b) {
-      b.addEventListener("click", function () { setLang(b.getAttribute("data-lang")); });
-    });
+    var sel = $(".lang-select");
+    if (sel) {
+      sel.addEventListener("change", function () { setLang(sel.value); });
+    }
     setLang(saved);
   }
 

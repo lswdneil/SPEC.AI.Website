@@ -208,9 +208,9 @@ test('i18n 四语字典与切换器', () => {
   for (const f of HTML_FILES) {
     if (!exists(f)) continue;
     const html = read(f);
-    if (!html.includes('class="lang-switch"')) errs.push(`${f} 缺少语言切换器`);
-    if (!html.includes('data-lang="ja"')) errs.push(`${f} 缺少日语按钮`);
-    if (!html.includes('data-lang="ko"')) errs.push(`${f} 缺少韩语按钮`);
+    if (!html.includes('class="lang-select"')) errs.push(`${f} 缺少语言下拉`);
+    if (!html.includes('value="ja"')) errs.push(`${f} 缺少日语选项`);
+    if (!html.includes('value="ko"')) errs.push(`${f} 缺少韩语选项`);
   }
   return errs;
 });
