@@ -10,7 +10,7 @@
   var LANG_KEY = "dsh-site-lang";
   var LANGS = ["zh", "en", "ja", "ko"];
   var LANG_ATTR = { zh: "zh-CN", en: "en", ja: "ja", ko: "ko" };
-  var state = { data: null, os: detectOS(), lang: "zh", dict: null, copiedTimer: null, themeTimer: null };
+  var state = { data: null, os: detectOS(), lang: "zh", dict: null, copiedTimer: null };
 
   /* ---------- 平台识别 ---------- */
   function detectOS() {
@@ -98,30 +98,6 @@
       sel.addEventListener("change", function () { setLang(sel.value); });
     }
     setLang(saved);
-  }
-
-  /* ---------- 多色主题 ---------- */
-  var THEMES = ["default", "blue", "green", "amber", "violet"];
-  var THEME_KEY = "dsh-site-theme";
-
-  function applyTheme(name) {
-    var root = document.documentElement;
-    if (THEMES.indexOf(name) === -1) name = "default";
-    if (name === "default") root.removeAttribute("data-theme");
-    else root.setAttribute("data-theme", name);
-    try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* ignore */ }
-    $all(".theme-swatch").forEach(function (s) {
-      s.classList.toggle("active", s.getAttribute("data-theme") === name);
-    });
-  }
-
-  function initTheme() {
-    var saved = "default";
-    try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (e) { /* ignore */ }
-    applyTheme(saved);
-    $all(".theme-swatch").forEach(function (s) {
-      s.addEventListener("click", function () { applyTheme(s.getAttribute("data-theme")); });
-    });
   }
 
   /* ---------- 平台图标 ---------- */
@@ -381,7 +357,6 @@
     initNav();
     initTabs();
     initReveal();
-    initTheme();
     initLang();
     loadData(function (d) {
       document.querySelectorAll("[data-version]").forEach(function (el) {
