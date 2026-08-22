@@ -44,7 +44,7 @@ window.I18N = {
   "step-3-t": "Start Delegating",
   "step-3-d": "Hand it your first task. It auto-updates and self-evolves, learning your business over time.",
 
-  "cta-title": "Hire Employee #1 Now",
+  "cta-title": "Hire Your Own First AI Digital Employee Now",
   "cta-desc": "Open source · Local-first · No ads · No telemetry. Issues are welcome on GitHub.",
   "cta-download": "Go to Download",
   "cta-changelog": "View Changelog",

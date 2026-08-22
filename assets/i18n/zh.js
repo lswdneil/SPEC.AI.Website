@@ -50,7 +50,7 @@ window.I18N = {
   "step-3-d": "把第一件任务交给它。之后它会自动升级、自我进化，越来越懂你的业务。",
 
   /* CTA */
-  "cta-title": "现在，雇下 1号员工",
+  "cta-title": "现在，雇下属于您个人的第1位AI数字员工",
   "cta-desc": "开源 · 数据本地 · 无广告 · 无遥测。有问题欢迎到 GitHub 提 Issue。",
   "cta-download": "前往下载页",
   "cta-changelog": "查看更新日志",
