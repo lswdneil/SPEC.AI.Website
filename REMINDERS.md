@@ -9,10 +9,10 @@
 
 - [x] **替换占位符**：安装包直链/SHA256/大小 ✅（specai-1.1.3-win-x64.exe）；homepage 已替换为 spec-ai.cn ✅
 - [ ] **域名 spec-ai.cn 审核中**：注册局审核通过后 → 实名 → DNS 托管 Cloudflare → Cloudflare Pages 绑定 `spec-ai.cn` → HTTPS 验证上线（路线：境外不备案 ✅ 已确认）
-- [ ] **阿里云 OSS 国内下载加速**：注册/实名阿里云 → 开通 OSS → 创建桶并上传 `specai-1.1.3-win-x64.exe` → 获取直链 → 替换 `releases.json` windows 下载 URL（国内快速下载；GitHub 链接可作备选）
+- [x] **阿里云 OSS 国内下载加速**：✅ 已上线 — Windows 安装包主下载已切换为 OSS 直链（国内加速），GitHub Release 保留为海外备用；后续 macOS/Linux 发布时需同步上传 OSS 并更新 `releases.json`
 - [ ] **pages.dev 激活**：周期检查后台运行中（30分钟/次），激活后自动通知；激活后先以 pages.dev 上线，域名生效后绑定 spec-ai.cn
 - [ ] **核对截图对应**：截图是按文件名语义选配的，请人工核对每张图内容与标题是否对应，不符则替换 `assets/img/scene-*.png`
-- [ ] **JSON-LD 同步**：`index.html` 中 SoftwareApplication 的 `softwareVersion` 与 `downloadUrl` 需随 `releases.json` 发版同步更新
+- [ ] **JSON-LD 同步**：`index.html` 中 SoftwareApplication 的 `softwareVersion` 与 `downloadUrl` 需随 `releases.json` 发版同步更新（v1.1.3 已同步：downloadUrl → OSS 直链）
 - [ ] **校准发布工作流**：`.github/workflows/release.yml` 中的 electron-builder 命令与产物路径需按 1号员工 源码仓库实际配置调整；确认后由用户决定是否接入
 - [ ] **自动更新联调**：electron-updater 的 `latest.yml` 发布链路（属产品端，网站端需在发布后同步版本信息到 `releases.json`）
 
