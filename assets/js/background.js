@@ -18,8 +18,9 @@
 
   /* ---------- 品牌色（暗底） ---------- */
   var COLOR_LINE = "rgba(194, 91, 67, 0.28)";        // 红褐流线
-  var COLOR_PARTICLE = "rgba(232, 160, 140, 0.72)";  // 浅红褐粒子（aou-8）
-  var COLOR_PARTICLE_ALT = "rgba(91, 141, 239, 0.55)"; // 信息蓝点缀
+  var COLOR_PARTICLE = "rgba(232, 160, 140, 0.72)";  // 浅红褐粒子（aou-8，左侧）
+  var COLOR_PARTICLE_ALT = "rgba(91, 141, 239, 0.55)"; // 信息蓝点缀（左侧保留）
+  var COLOR_PARTICLE_RIGHT = "rgba(110, 158, 244, 0.8)"; // 信息蓝粒子（右侧）
   var COLOR_RING = "rgba(194, 91, 67, 0.22)";        // 涟漪环
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -135,8 +136,10 @@
         pos.x += dxTotal;
         pos.y += dyTotal;
 
-        // 品牌色粒子：主红褐 + 少量信息蓝点缀
-        ctx.fillStyle = (Math.random() < 0.12) ? COLOR_PARTICLE_ALT : COLOR_PARTICLE;
+        // 粒子颜色：左侧路径保持红褐（含原信息蓝点缀），右侧路径改为信息蓝
+        ctx.fillStyle = path.isLeft
+          ? (Math.random() < 0.12 ? COLOR_PARTICLE_ALT : COLOR_PARTICLE)
+          : COLOR_PARTICLE_RIGHT;
         ctx.fillRect(pos.x - 1.5, pos.y - 1.5, 3, 3);
       });
     });
