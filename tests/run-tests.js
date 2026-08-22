@@ -194,7 +194,28 @@ test('HTML 引用的内部资源存在', () => {
   return errs;
 });
 
-/* ---------- 5. JS 语法 ---------- */
+/* ---------- 6. i18n 完整性 ---------- */
+test('i18n 四语字典与切换器', () => {
+  const errs = [];
+  for (const lang of ['zh', 'en', 'ja', 'ko']) {
+    const f = `assets/i18n/${lang}.js`;
+    if (!exists(f)) { errs.push(`${f} 不存在`); continue; }
+    try {
+      const content = read(f);
+      if (!content.includes('window.I18N')) errs.push(`${f} 缺少 window.I18N`);
+    } catch (e) { errs.push(`${f} 读取失败: ${e.message}`); }
+  }
+  for (const f of HTML_FILES) {
+    if (!exists(f)) continue;
+    const html = read(f);
+    if (!html.includes('class="lang-switch"')) errs.push(`${f} 缺少语言切换器`);
+    if (!html.includes('data-lang="ja"')) errs.push(`${f} 缺少日语按钮`);
+    if (!html.includes('data-lang="ko"')) errs.push(`${f} 缺少韩语按钮`);
+  }
+  return errs;
+});
+
+/* ---------- 7. JS 语法 ---------- */
 test('main.js 语法检查', () => {
   if (!exists('assets/js/main.js')) return ['assets/js/main.js 不存在'];
   const r = spawnSync(process.execPath, ['--check', path.join(ROOT, 'assets/js/main.js')], { encoding: 'utf8' });

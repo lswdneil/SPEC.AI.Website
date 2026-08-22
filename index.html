@@ -38,21 +38,27 @@
     <div class="container">
       <a class="brand" href="index.html">
         <img src="assets/img/logo-nav.png" alt="1号员工 logo">
-        <span>1号员工<span class="brand-en">&nbsp;· Digital AI Employee 1#</span></span>
+        <span class="brand-quote" data-i18n="brand-quote">Only those who will risk going too far can possibly find out how far one can go.<span class="quote-src" data-i18n="brand-quote-src">T. S. Eliot</span></span>
       </a>
       <nav class="nav-links" aria-label="主导航">
-        <a class="nav-link-text" href="download.html">下载</a>
-        <a class="nav-link-text" href="changelog.html">更新日志</a>
-                <div class="theme-switch" role="group" aria-label="主题切换">
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="zh" type="button" title="中文">中</button>
+          <button class="lang-btn" data-lang="en" type="button" title="English">EN</button>
+          <button class="lang-btn" data-lang="ja" type="button" title="日本語">日本語</button>
+          <button class="lang-btn" data-lang="ko" type="button" title="한국어">한국어</button>
+        </div>
+        <div class="theme-switch" role="group" aria-label="主题切换">
           <button class="theme-swatch active" data-theme="default" type="button" title="默认红褐" aria-label="默认红褐主题"></button>
           <button class="theme-swatch" data-theme="blue" type="button" title="蓝色" aria-label="蓝色主题"></button>
           <button class="theme-swatch" data-theme="green" type="button" title="翠绿" aria-label="翠绿主题"></button>
           <button class="theme-swatch" data-theme="amber" type="button" title="琥珀" aria-label="琥珀主题"></button>
           <button class="theme-swatch" data-theme="violet" type="button" title="紫罗兰" aria-label="紫罗兰主题"></button>
         </div>
+        <a class="nav-link-text" href="download.html" data-i18n="nav-download">下载</a>
+        <a class="nav-link-text" href="changelog.html" data-i18n="nav-changelog">更新日志</a>
         <a class="nav-gh" href="https://github.com/lswdneil/Digital-AI-Employee" target="_blank" rel="noopener">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.6.5.5 5.6.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.2.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.4-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.6 18.4.5 12 .5Z"/></svg>
-          GitHub
+          <span data-i18n="nav-github">GitHub</span>
         </a>
       </nav>
     </div>
@@ -67,22 +73,22 @@
             <span class="dot" aria-hidden="true"></span>
             Digital AI Employee 1#
           </div>
-          <h1 class="fade-item d1">你的第一位<br><span class="accent">数字员工</span></h1>
-          <p class="hero-sub fade-item d2">1号员工不是工具，是同事。它懂你的业务、写你的代码、管你的系统、做你的文档，并和你一起成长。一个人公司，从雇到第一位员工开始。</p>
+          <h1 class="fade-item d1"><span data-i18n="hero-h1-1">你的第一位</span><br><span class="accent" data-i18n="hero-h1-2">数字员工</span></h1>
+          <p class="hero-sub fade-item d2" data-i18n="hero-sub">1号员工不是工具，是同事。它懂你的业务、写你的代码、管你的系统、做你的文档，并和你一起成长。一个人公司，从雇到第一位员工开始。</p>
           <div id="hero-cta" class="hero-cta fade-item d3"></div>
         </div>
         <div class="hero-shot fade-item d4">
-          <img src="assets/img/app-hero.png" alt="1号员工 对话工作台界面截图" width="1440" height="1013">
+          <img src="assets/img/app-hero.png" alt="1号员工 对话工作台界面截图" width="1440" height="1013" data-i18n-alt="hero-shot-alt">
         </div>
       </div>
     </section>
 
-    <!-- 能力特性（Bento 布局，由 releases.json 渲染） -->
+    <!-- 能力特性（Bento 布局，由 releases.json + i18n 渲染） -->
     <section class="section" id="capabilities">
       <div class="container">
         <div class="section-head reveal">
           <div class="kicker">Capabilities</div>
-          <h2>一位能扛事的员工</h2>
+          <h2 data-i18n="caps-title">一位能扛事的员工</h2>
         </div>
         <div id="caps-grid" class="caps"></div>
       </div>
@@ -92,42 +98,42 @@
     <section class="section section-alt section-scene">
       <div class="container">
         <div class="section-head reveal">
-          <h2>一个窗口，三种工作方式</h2>
+          <h2 data-i18n="scene-title">一个窗口，三种工作方式</h2>
         </div>
 
         <div class="tabs reveal" role="tablist" aria-label="工作场景">
-          <button class="tab-btn active" data-tab="scene-work" role="tab">对话工作台</button>
-          <button class="tab-btn" data-tab="scene-team" role="tab">多智能体编排</button>
-          <button class="tab-btn" data-tab="scene-office" role="tab">办公文档</button>
-          <button class="tab-btn" data-tab="scene-light" role="tab">浅色主题</button>
+          <button class="tab-btn active" data-tab="scene-work" role="tab" data-i18n="tab-work">对话工作台</button>
+          <button class="tab-btn" data-tab="scene-team" role="tab" data-i18n="tab-team">多智能体编排</button>
+          <button class="tab-btn" data-tab="scene-office" role="tab" data-i18n="tab-office">办公文档</button>
+          <button class="tab-btn" data-tab="scene-light" role="tab" data-i18n="tab-light">浅色主题</button>
         </div>
 
         <div class="scene active" id="scene-work">
           <div class="scene-shot">
             <img src="assets/img/scene-work.png" alt="对话工作台界面截图" width="1440" height="1008">
           </div>
-          <p class="scene-caption"><b>对话工作台</b> · 流式回复 · 思考过程可见 · 工具调用状态实时显示</p>
+          <p class="scene-caption"><b data-i18n="tab-work">对话工作台</b><span data-i18n="cap-work"> · 流式回复 · 思考过程可见 · 工具调用状态实时显示</span></p>
         </div>
 
         <div class="scene" id="scene-team">
           <div class="scene-shot">
             <img src="assets/img/scene-team.png" alt="多智能体编排界面截图" width="1440" height="1008">
           </div>
-          <p class="scene-caption"><b>多智能体编排</b> · 5 种团队策略 · 自动组队分工 · 审批流人机协作</p>
+          <p class="scene-caption"><b data-i18n="tab-team">多智能体编排</b><span data-i18n="cap-team"> · 5 种团队策略 · 自动组队分工 · 审批流人机协作</span></p>
         </div>
 
         <div class="scene" id="scene-office">
           <div class="scene-shot">
             <img src="assets/img/scene-office.png" alt="办公文档生成界面截图" width="1440" height="1008">
           </div>
-          <p class="scene-caption"><b>办公文档</b> · 一句话生成 Word / PPT / Excel · 内置 11 个 Office 技能</p>
+          <p class="scene-caption"><b data-i18n="tab-office">办公文档</b><span data-i18n="cap-office"> · 一句话生成 Word / PPT / Excel · 内置 11 个 Office 技能</span></p>
         </div>
 
         <div class="scene" id="scene-light">
           <div class="scene-shot">
             <img src="assets/img/scene-light.png" alt="浅色主题界面截图" width="1440" height="1057">
           </div>
-          <p class="scene-caption"><b>浅色主题</b> · 深浅主题可选 · 点击右上角色块可切换本站主题色</p>
+          <p class="scene-caption"><b data-i18n="tab-light">浅色主题</b><span data-i18n="cap-light"> · 深浅主题可选 · 点击右上角色块可切换本站主题色</span></p>
         </div>
       </div>
     </section>
@@ -136,20 +142,20 @@
     <section class="section">
       <div class="container">
         <div class="section-head reveal">
-          <h2>三步，雇下你的第一位员工</h2>
+          <h2 data-i18n="steps-title">三步，雇下你的第一位员工</h2>
         </div>
         <div class="steps">
           <div class="step reveal">
-            <h3><span class="step-no">01</span>下载安装</h3>
-            <p>下载 Windows 安装包，双击完成安装，首次启动有引导向导帮你完成配置。</p>
+            <h3><span class="step-no">01</span><span data-i18n="step-1-t">下载安装</span></h3>
+            <p data-i18n="step-1-d">下载 Windows 安装包，双击完成安装，首次启动有引导向导帮你完成配置。</p>
           </div>
           <div class="step reveal">
-            <h3><span class="step-no">02</span>接入模型</h3>
-            <p>配置你的 LLM Provider（支持 13+ 家），1号员工 即可开始思考与工作。</p>
+            <h3><span class="step-no">02</span><span data-i18n="step-2-t">接入模型</span></h3>
+            <p data-i18n="step-2-d">配置你的 LLM Provider（支持 13+ 家），1号员工 即可开始思考与工作。</p>
           </div>
           <div class="step reveal">
-            <h3><span class="step-no">03</span>开始委派</h3>
-            <p>把第一件任务交给它。之后它会自动升级、自我进化，越来越懂你的业务。</p>
+            <h3><span class="step-no">03</span><span data-i18n="step-3-t">开始委派</span></h3>
+            <p data-i18n="step-3-d">把第一件任务交给它。之后它会自动升级、自我进化，越来越懂你的业务。</p>
           </div>
         </div>
       </div>
@@ -158,11 +164,11 @@
     <!-- 最终 CTA -->
     <section class="cta-band">
       <div class="container">
-        <h2 class="reveal">现在，雇下 1号员工</h2>
-        <p class="reveal">开源 · 数据本地 · 无广告 · 无遥测。有问题欢迎到 GitHub 提 Issue。</p>
+        <h2 class="reveal" data-i18n="cta-title">现在，雇下 1号员工</h2>
+        <p class="reveal" data-i18n="cta-desc">开源 · 数据本地 · 无广告 · 无遥测。有问题欢迎到 GitHub 提 Issue。</p>
         <div class="hero-cta reveal">
-          <a href="download.html" class="btn btn-primary">前往下载页 <span class="arrow">→</span></a>
-          <a href="changelog.html" class="btn btn-ghost-dark">查看更新日志</a>
+          <a href="download.html" class="btn btn-primary" data-i18n="cta-download">前往下载页 <span class="arrow">→</span></a>
+          <a href="changelog.html" class="btn btn-ghost-dark" data-i18n="cta-changelog">查看更新日志</a>
         </div>
       </div>
     </section>
@@ -177,28 +183,29 @@
             <img src="assets/img/logo-nav.png" alt="1号员工 logo">
             <span>1号员工</span>
           </div>
-          <p style="max-width: 34ch; font-size: 14px;">一个人公司的第一位数字员工。自主执行、多智能体编排、自我进化。</p>
+          <p style="max-width: 34ch; font-size: 14px;" data-i18n="footer-desc">一个人公司的第一位数字员工。自主执行、多智能体编排、自我进化。</p>
         </div>
         <div class="footer-col">
-          <h4>产品</h4>
-          <a href="download.html">下载</a>
-          <a href="changelog.html">更新日志</a>
-          <a href="index.html#capabilities">能力特性</a>
+          <h4 data-i18n="footer-prod">产品</h4>
+          <a href="download.html" data-i18n="footer-dl">下载</a>
+          <a href="changelog.html" data-i18n="footer-log">更新日志</a>
+          <a href="index.html#capabilities" data-i18n="footer-caps">能力特性</a>
         </div>
         <div class="footer-col">
-          <h4>社区</h4>
-          <a href="https://github.com/lswdneil/Digital-AI-Employee" target="_blank" rel="noopener">GitHub 仓库</a>
-          <a href="https://github.com/lswdneil/Digital-AI-Employee/issues" target="_blank" rel="noopener">问题反馈</a>
-          <a href="https://github.com/lswdneil/Digital-AI-Employee" target="_blank" rel="noopener">开源许可</a>
+          <h4 data-i18n="footer-community">社区</h4>
+          <a href="https://github.com/lswdneil/Digital-AI-Employee" target="_blank" rel="noopener" data-i18n="footer-gh">GitHub 仓库</a>
+          <a href="https://github.com/lswdneil/Digital-AI-Employee/issues" target="_blank" rel="noopener" data-i18n="footer-issues">问题反馈</a>
+          <a href="https://github.com/lswdneil/Digital-AI-Employee" target="_blank" rel="noopener" data-i18n="footer-license">开源许可</a>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 1号员工 · v<span data-version>1.1.3</span></span>
-        <span class="info-blue">Digital AI Employee 1# · 托管于 Vercel</span>
+        <span><span data-i18n="footer-copy">© 2026 1号员工</span> · v<span data-version>1.1.3</span></span>
+        <span class="info-blue" data-i18n="footer-host">Digital AI Employee 1# · 托管于 Vercel</span>
       </div>
     </div>
   </footer>
 
+  <script src="assets/i18n/zh.js"></script>
   <script src="assets/js/main.js"></script>
 </body>
 </html>

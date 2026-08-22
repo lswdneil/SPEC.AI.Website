@@ -1,14 +1,16 @@
 /* ============================================================
    1号员工 — 官网交互脚本
-   功能：读取 data/releases.json 动态渲染版本号与下载按钮
-        平台自动识别（Windows / macOS / Linux）
-        校验值复制、滚动显现、导航栏状态、场景 Tab
+   功能：i18n 四语切换（中/英/日/韩）、多色主题切换、平台识别、
+        动态渲染（能力/更新日志/下载按钮）、校验值复制、场景 Tab
    ============================================================ */
 (function () {
   "use strict";
 
   var DATA_URL = "data/releases.json";
-  var state = { data: null, os: detectOS(), copiedTimer: null };
+  var LANG_KEY = "dsh-site-lang";
+  var LANGS = ["zh", "en", "ja", "ko"];
+  var LANG_ATTR = { zh: "zh-CN", en: "en", ja: "ja", ko: "ko" };
+  var state = { data: null, os: detectOS(), lang: "zh", dict: null, copiedTimer: null, themeTimer: null };
 
   /* ---------- 平台识别 ---------- */
   function detectOS() {
@@ -21,36 +23,88 @@
     return "windows";
   }
 
-  /* ---------- 加载数据 ---------- */
-  function loadData(cb) {
-    fetch(DATA_URL, { cache: "no-store" })
-      .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return r.json();
-      })
-      .then(function (d) { state.data = d; cb(d); })
-      .catch(function (e) {
-        console.error("无法加载 releases.json：", e);
-        // 离线兜底：显示占位文本，避免页面白屏
-        document.querySelectorAll("[data-version]").forEach(function (el) {
-          el.textContent = "未知版本";
-        });
-        document.querySelectorAll("[data-dl]").forEach(function (el) {
-          el.setAttribute("disabled", "disabled");
-          el.textContent = "下载配置缺失";
-        });
-      });
-  }
-
-  /* ---------- 元素工具 ---------- */
+  /* ---------- 小工具 ---------- */
   function $(sel, root) { return (root || document).querySelector(sel); }
   function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
-
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
     if (text != null) n.textContent = text;
     return n;
+  }
+  /* 取当前语言文案，缺失回退原文 */
+  function t(key, fallback) {
+    if (state.dict && state.dict[key] != null) return state.dict[key];
+    return fallback != null ? fallback : "";
+  }
+
+  /* ---------- i18n ---------- */
+  function loadLangDict(lang, cb) {
+    var s = document.createElement("script");
+    s.src = "assets/i18n/" + lang + ".js";
+    s.onload = function () { state.dict = window.I18N || {}; cb && cb(); };
+    s.onerror = function () { state.dict = null; cb && cb(); };
+    document.head.appendChild(s);
+  }
+
+  function applyStaticI18n() {
+    $all("[data-i18n]").forEach(function (n) {
+      var key = n.getAttribute("data-i18n");
+      var val = t(key, n.innerHTML);
+      if (val != null && val !== "") n.innerHTML = val;
+    });
+    $all("[data-i18n-alt]").forEach(function (n) {
+      var key = n.getAttribute("data-i18n-alt");
+      n.setAttribute("alt", t(key, n.getAttribute("alt")));
+    });
+  }
+
+  function setLang(lang, cb) {
+    if (LANGS.indexOf(lang) === -1) lang = "zh";
+    loadLangDict(lang, function () {
+      state.lang = lang;
+      document.documentElement.lang = LANG_ATTR[lang] || "zh-CN";
+      $all(".lang-btn").forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-lang") === lang);
+      });
+      try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
+      applyStaticI18n();
+      rerenderDynamic();
+      cb && cb();
+    });
+  }
+
+  function initLang() {
+    var saved = "zh";
+    try { saved = localStorage.getItem(LANG_KEY) || "zh"; } catch (e) { /* ignore */ }
+    $all(".lang-btn").forEach(function (b) {
+      b.addEventListener("click", function () { setLang(b.getAttribute("data-lang")); });
+    });
+    setLang(saved);
+  }
+
+  /* ---------- 多色主题 ---------- */
+  var THEMES = ["default", "blue", "green", "amber", "violet"];
+  var THEME_KEY = "dsh-site-theme";
+
+  function applyTheme(name) {
+    var root = document.documentElement;
+    if (THEMES.indexOf(name) === -1) name = "default";
+    if (name === "default") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", name);
+    try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* ignore */ }
+    $all(".theme-swatch").forEach(function (s) {
+      s.classList.toggle("active", s.getAttribute("data-theme") === name);
+    });
+  }
+
+  function initTheme() {
+    var saved = "default";
+    try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (e) { /* ignore */ }
+    applyTheme(saved);
+    $all(".theme-swatch").forEach(function (s) {
+      s.addEventListener("click", function () { applyTheme(s.getAttribute("data-theme")); });
+    });
   }
 
   /* ---------- 平台图标 ---------- */
@@ -63,34 +117,36 @@
   /* ---------- 渲染：hero 下载按钮 ---------- */
   function renderHero(container, d) {
     if (!container) return;
+    container.innerHTML = "";
     var map = { windows: "windows", macos: "macos", linux: "linux" };
     var key = map[state.os] || "windows";
     var p = d.platforms[key];
 
     if (p && p.primary) {
-      var btn = el("a", "btn btn-primary", "");
+      var btn = el("a", "btn btn-primary");
       btn.href = p.primary.url;
       btn.setAttribute("download", "");
-      btn.innerHTML = OS_ICONS[key] +
-        "<span>下载 " + d.product.name + " for " + p.label.split(" ")[0] + "</span>" +
-        '<span class="arrow" aria-hidden="true">→</span>';
+      var osName = p.label.split(" ")[0];
+      var label = t("dl-for", "下载 " + d.product.name + " for " + osName)
+        .replace(/\{name\}/g, d.product.name).replace(/\{os\}/g, osName);
+      btn.innerHTML = OS_ICONS[key] + "<span>" + label + "</span>" + '<span class="arrow" aria-hidden="true">→</span>';
       container.appendChild(btn);
     }
   }
 
-  /* ---------- 渲染：能力特性（Bento 不对称网格） ---------- */
+  /* ---------- 渲染：能力特性（Bento，i18n） ---------- */
   function renderCapabilities(container, d) {
     if (!container || !d.capabilities) return;
+    container.innerHTML = "";
     d.capabilities.forEach(function (c, i) {
       var cls = "cap-item reveal";
-      // Bento 布局：前 2 项大块(6)、中间 3 项小块(4)、最后 1 项横条(12)
       if (i >= 2 && i < 5) cls += " cap-sm";
       if (i === 5) cls += " cap-wide";
 
       var item = el("div", cls);
       if (c.tag) item.appendChild(el("span", "cap-tag", c.tag));
-      item.appendChild(el("h3", null, c.title));
-      item.appendChild(el("p", null, c.desc));
+      item.appendChild(el("h3", null, t("cap-" + (i + 1) + "-title", c.title)));
+      item.appendChild(el("p", null, t("cap-" + (i + 1) + "-desc", c.desc)));
       container.appendChild(item);
     });
   }
@@ -111,12 +167,12 @@
       card.appendChild(el("div", "os-hint", p.hint));
 
       if (p.primary) {
-        var btn = el("a", "btn btn-primary", "下载安装包");
+        var btn = el("a", "btn btn-primary", t("dl-download-btn", "下载安装包"));
         btn.href = p.primary.url;
         btn.setAttribute("download", "");
         card.appendChild(btn);
       } else {
-        var soon = el("span", "soon", "即将推出");
+        var soon = el("span", "soon", t("dl-soon", "即将推出"));
         card.appendChild(soon);
       }
 
@@ -125,7 +181,7 @@
         meta.appendChild(el("span", null, p.primary.name));
         meta.appendChild(el("span", null, p.primary.size));
       } else {
-        meta.appendChild(el("span", null, "敬请期待"));
+        meta.appendChild(el("span", null, t("dl-soon-meta", "敬请期待")));
       }
       card.appendChild(meta);
 
@@ -136,6 +192,7 @@
   /* ---------- 渲染：下载页文件清单 ---------- */
   function renderFileRows(rows, d) {
     if (!rows) return;
+    rows.querySelectorAll(".file-row:not(.head)").forEach(function (n) { n.remove(); });
     Object.keys(d.platforms).forEach(function (key) {
       var p = d.platforms[key];
       p.files.forEach(function (f) {
@@ -150,7 +207,7 @@
         var sha = el("div", "file-sha", f.sha256);
         row.appendChild(sha);
 
-        var copy = el("button", "copy-btn", "复制校验值");
+        var copy = el("button", "copy-btn", t("copy-btn", "复制校验值"));
         copy.type = "button";
         copy.addEventListener("click", function () {
           copyChecksum(f.sha256, copy);
@@ -162,9 +219,10 @@
     });
   }
 
-  /* ---------- 渲染：更新日志 ---------- */
+  /* ---------- 渲染：更新日志（i18n） ---------- */
   function renderChangelog(list, d) {
     if (!list) return;
+    list.innerHTML = "";
     d.changelog.forEach(function (rel, i) {
       var item = el("article", "release reveal");
 
@@ -176,17 +234,31 @@
       tag.appendChild(a);
       ver.appendChild(tag);
       ver.appendChild(el("div", "date", rel.date));
-      if (i === 0) ver.appendChild(el("span", "badge-new", "最新"));
+      if (i === 0) ver.appendChild(el("span", "badge-new", t("badge-new", "最新")));
       item.appendChild(ver);
 
       var body = el("div", "release-body");
       var ul = el("ul");
-      rel.items.forEach(function (t) { ul.appendChild(el("li", null, t)); });
+      rel.items.forEach(function (txt, j) {
+        var k = "log-" + rel.version + "-i" + (j + 1);
+        ul.appendChild(el("li", null, t(k, txt)));
+      });
       body.appendChild(ul);
       item.appendChild(body);
 
       list.appendChild(item);
     });
+  }
+
+  /* ---------- 动态内容重渲染（语言切换时） ---------- */
+  function rerenderDynamic() {
+    if (!state.data) return;
+    renderHero($("#hero-cta"), state.data);
+    renderCapabilities($("#caps-grid"), state.data);
+    renderDlGrid($("#dl-grid"), state.data);
+    renderFileRows($("#file-rows"), state.data);
+    renderChangelog($("#changelog-list"), state.data);
+    observeReveals();
   }
 
   /* ---------- 校验值复制 ---------- */
@@ -195,7 +267,7 @@
       if (state.copiedTimer) clearTimeout(state.copiedTimer);
       btn.classList.add("copied");
       var old = btn.textContent;
-      btn.textContent = "已复制";
+      btn.textContent = t("copied", "已复制");
       state.copiedTimer = setTimeout(function () {
         btn.classList.remove("copied");
         btn.textContent = old;
@@ -241,7 +313,6 @@
       });
     }, { threshold: 0.12 });
     observeReveals();
-    // 兜底：IO 回调未触发（无头渲染 / 特殊环境）时，1.2s 后直接显现视口内元素，避免内容不可见
     setTimeout(function () { observeReveals(true); }, 1200);
   }
 
@@ -272,45 +343,34 @@
     });
   }
 
-  /* ---------- 多色主题切换 ---------- */
-  var THEMES = ["default", "blue", "green", "amber", "violet"];
-  var THEME_KEY = "dsh-site-theme";
-
-  function applyTheme(name) {
-    var root = document.documentElement;
-    if (THEMES.indexOf(name) === -1) name = "default";
-    if (name === "default") root.removeAttribute("data-theme");
-    else root.setAttribute("data-theme", name);
-    try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* ignore */ }
-    $all(".theme-swatch").forEach(function (s) {
-      s.classList.toggle("active", s.getAttribute("data-theme") === name);
-    });
-  }
-
-  function initTheme() {
-    var saved = "default";
-    try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (e) { /* ignore */ }
-    applyTheme(saved);
-    $all(".theme-swatch").forEach(function (s) {
-      s.addEventListener("click", function () { applyTheme(s.getAttribute("data-theme")); });
-    });
+  /* ---------- 数据加载 ---------- */
+  function loadData(cb) {
+    fetch(DATA_URL, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return r.json();
+      })
+      .then(function (d) { state.data = d; cb(d); })
+      .catch(function (e) {
+        console.error("无法加载 releases.json：", e);
+        document.querySelectorAll("[data-version]").forEach(function (el) {
+          el.textContent = "-";
+        });
+      });
   }
 
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
-    initTheme();
     initNav();
     initTabs();
     initReveal();
+    initTheme();
+    initLang();
     loadData(function (d) {
       document.querySelectorAll("[data-version]").forEach(function (el) {
-        el.textContent = "v" + d.latest.version;
+        el.textContent = d.latest.version;
       });
-      renderHero($("#hero-cta"), d);
-      renderCapabilities($("#caps-grid"), d);
-      renderDlGrid($("#dl-grid"), d);
-      renderFileRows($("#file-rows"), d);
-      renderChangelog($("#changelog-list"), d);
+      rerenderDynamic();
       observeReveals();
       setTimeout(function () { observeReveals(true); }, 800);
     });

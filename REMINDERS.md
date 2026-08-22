@@ -13,6 +13,8 @@
 - [ ] **自动更新联调**：electron-updater 的 `latest.yml` 发布链路（属产品端，网站端需在发布后同步版本信息到 `releases.json`）
 - [ ] **域名绑定**：Vercel 部署后绑定正式域名（DNS CNAME → `cname.vercel-dns.com`）；国内访问优化方案（优选 CNAME / 备案 / OSS+CDN）择一执行
 
+- [x] **多语支持**：官网已支持中/英/日/韩四语切换（导航语言按钮，localStorage 记忆）；新文案需同步维护 assets/i18n/ 四语字典
+
 ## 给产品端的提醒（不代改，仅提醒）
 
 - [ ] **仓库 logo 文件带病**：`opc-employee-1-v3-fork/logo/specai-logo.svg` 第 1 行重复 `xmlns` 属性（非法 XML）。网站端副本已修复；仓库原文件建议由产品端择机修复，否则任何拷贝/构建环节用到都会出问题
