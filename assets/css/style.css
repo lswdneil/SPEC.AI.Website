@@ -200,6 +200,7 @@ a { color: inherit; }
 }
 .hero-shot img {
   width: 100%;
+  height: auto;
   border-radius: 14px;
   border: 1px solid var(--line);
   box-shadow: var(--shadow-pop);
@@ -281,7 +282,7 @@ a { color: inherit; }
   overflow: hidden;
   box-shadow: var(--shadow-pop);
 }
-.scene-shot img { width: 100%; }
+.scene-shot img { width: 100%; height: auto; }
 .scene-caption {
   margin-top: 20px; display: flex; gap: 16px; flex-wrap: wrap;
   font-family: var(--mono); font-size: 13px; color: var(--text-secondary);
