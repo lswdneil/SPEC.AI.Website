@@ -160,6 +160,18 @@ a { color: inherit; }
 }
 .nav-gh:hover { border-color: var(--accent); background: rgba(194, 91, 67, 0.12); }
 
+/* 品牌底色按钮（物理接入） */
+.nav-gh-brand {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff !important;
+}
+.nav-gh-brand:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: 0 6px 18px rgba(194, 91, 67, 0.35);
+}
+
 /* ---------- 语言下拉（最右上角，与 GitHub 按钮同尺寸） ---------- */
 .lang-select {
   font-family: var(--sans);
