@@ -46,6 +46,33 @@
   --shadow-pop: 0 18px 50px rgba(7, 9, 12, 0.45);
 }
 
+/* ---------- 多色主题（可选切换，呼应桌面应用主题能力） ----------
+   默认 = 红褐（D+B 品牌）；其余主题仅切换 accent 主色，底色保持深色体系 */
+:root[data-theme="blue"] {
+  --accent: #5b8def;
+  --accent-hover: #7ba3f3;
+  --accent-soft: #a8c4fa;
+  --info: #5b8def;
+}
+:root[data-theme="green"] {
+  --accent: #3fbf77;
+  --accent-hover: #5fd491;
+  --accent-soft: #a8e8c5;
+  --info: #5b8def;
+}
+:root[data-theme="amber"] {
+  --accent: #d9a13c;
+  --accent-hover: #e6b45e;
+  --accent-soft: #f0d3a0;
+  --info: #5b8def;
+}
+:root[data-theme="violet"] {
+  --accent: #8b5cf6;
+  --accent-hover: #a37df8;
+  --accent-soft: #c9b4fb;
+  --info: #5b8def;
+}
+
 /* ---------- 基础 ---------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -115,6 +142,26 @@ a { color: inherit; }
   transition: border-color 0.18s ease, background 0.18s ease;
 }
 .nav-gh:hover { border-color: var(--accent); background: rgba(194, 91, 67, 0.12); }
+
+/* ---------- 主题切换器 ---------- */
+.theme-switch {
+  display: flex; align-items: center; gap: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--line); border-radius: 999px;
+}
+.theme-swatch {
+  width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer; padding: 0;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.theme-swatch:hover { transform: scale(1.2); }
+.theme-swatch.active { border-color: #fff; }
+.theme-swatch[data-theme="default"] { background: #c25b43; }
+.theme-swatch[data-theme="blue"] { background: #5b8def; }
+.theme-swatch[data-theme="green"] { background: #3fbf77; }
+.theme-swatch[data-theme="amber"] { background: #d9a13c; }
+.theme-swatch[data-theme="violet"] { background: #8b5cf6; }
 
 /* ---------- Hero（非对称 Split：左文案 / 右截图） ---------- */
 .hero {

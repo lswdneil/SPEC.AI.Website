@@ -272,8 +272,33 @@
     });
   }
 
+  /* ---------- 多色主题切换 ---------- */
+  var THEMES = ["default", "blue", "green", "amber", "violet"];
+  var THEME_KEY = "dsh-site-theme";
+
+  function applyTheme(name) {
+    var root = document.documentElement;
+    if (THEMES.indexOf(name) === -1) name = "default";
+    if (name === "default") root.removeAttribute("data-theme");
+    else root.setAttribute("data-theme", name);
+    try { localStorage.setItem(THEME_KEY, name); } catch (e) { /* ignore */ }
+    $all(".theme-swatch").forEach(function (s) {
+      s.classList.toggle("active", s.getAttribute("data-theme") === name);
+    });
+  }
+
+  function initTheme() {
+    var saved = "default";
+    try { saved = localStorage.getItem(THEME_KEY) || "default"; } catch (e) { /* ignore */ }
+    applyTheme(saved);
+    $all(".theme-swatch").forEach(function (s) {
+      s.addEventListener("click", function () { applyTheme(s.getAttribute("data-theme")); });
+    });
+  }
+
   /* ---------- 启动 ---------- */
   document.addEventListener("DOMContentLoaded", function () {
+    initTheme();
     initNav();
     initTabs();
     initReveal();
