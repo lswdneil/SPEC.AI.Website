@@ -54,10 +54,15 @@
     paths = [];
     var n = pathCount();
     for (var i = 0; i < n; i++) {
+      // 每条流线 2 个粒子（粒子数量翻倍，流线结构不变）
+      var particles = [];
+      for (var k = 0; k < 2; k++) {
+        particles.push({ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 });
+      }
       paths.push({
         isLeft: i % 2 === 0,
         startY: (i / n) * height * 1.4 - height * 0.2,
-        particles: [{ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 }]
+        particles: particles
       });
     }
   }
