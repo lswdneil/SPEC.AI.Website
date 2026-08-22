@@ -3,6 +3,8 @@
 > 本文件记录网站端（`software-download-site/`）相关的待办项与给产品端的提醒。
 > 边界：只涉及网站端；1号员工 代码问题仅作提醒，不代改。
 
+- [x] **全站背景**：Gateway Flow 粒子流线背景已接入（verified source 提取，Canvas 2D 零依赖，品牌红褐/信息蓝配色，含 reduced-motion/visibility 降级）
+
 ## 待办项（网站端）
 
 - [ ] **替换占位符**：`data/releases.json` 中的安装包直链（`url`）、`sha256`、`homepage`（域名）上线前必须替换为真实值

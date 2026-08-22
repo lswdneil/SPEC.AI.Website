@@ -59,10 +59,11 @@ const VOID_TAGS = new Set([
   'link', 'meta', 'param', 'source', 'track', 'wbr',
 ]);
 const REQUIRED_IDS = {
-  'index.html': ['hero-cta', 'caps-grid', 'site-nav'],
-  'download.html': ['dl-grid', 'file-rows', 'site-nav'],
-  'changelog.html': ['changelog-list', 'site-nav'],
-  'hardware.html': ['site-nav'],
+  'index.html': ['hero-cta', 'caps-grid', 'site-nav', 'bg-canvas'],
+  'download.html': ['dl-grid', 'file-rows', 'site-nav', 'bg-canvas'],
+  'changelog.html': ['changelog-list', 'site-nav', 'bg-canvas'],
+  'hardware.html': ['site-nav', 'bg-canvas'],
+  '404.html': ['bg-canvas'],
 };
 
 test('HTML 文件存在且标签平衡', () => {
