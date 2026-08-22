@@ -142,27 +142,29 @@ a { color: inherit; }
   display: inline-flex; align-items: center; gap: 8px;
   color: var(--text-primary) !important;
   border: 1px solid var(--line); border-radius: 999px;
-  padding: 6px 14px; font-size: 13.5px;
+  padding: 0 16px; font-size: 13.5px; line-height: 1;
+  height: 34px;
   transition: border-color 0.18s ease, background 0.18s ease;
 }
 .nav-gh:hover { border-color: var(--accent); background: rgba(194, 91, 67, 0.12); }
 
-/* ---------- 语言下拉（最右上角） ---------- */
+/* ---------- 语言下拉（最右上角，与 GitHub 按钮同尺寸） ---------- */
 .lang-select {
   font-family: var(--sans);
-  font-size: 14px; font-weight: 600;
+  font-size: 13.5px; font-weight: 600;
+  line-height: 1;
   color: var(--text-primary);
   background: var(--ink-3);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 9px 38px 9px 18px;
-  min-width: 132px;
+  padding: 0 34px 0 16px;
+  height: 34px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a6acb6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23a6acb6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 14px center;
+  background-position: right 12px center;
   transition: border-color 0.15s ease;
 }
 .lang-select:hover { border-color: var(--accent); }
