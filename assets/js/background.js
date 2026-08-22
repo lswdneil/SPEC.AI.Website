@@ -1,10 +1,13 @@
 /* ============================================================
-   1号员工官网 — 全站固定背景（Gateway Flow 变体）
+   1号员工官网 — 全站固定背景（Gateway Flow 双色双向变体）
    来源：verified source「Constellation Field」gateway-flow.html
-   revision SHA-256 1920ad4fe34f（渲染器算法忠实保留，仅做品牌色与降级适配）
+   revision SHA-256 1920ad4fe34f（渲染器算法忠实保留，扩展为双色双向）
    技术：Canvas 2D，零外部依赖
-   视觉：贝塞尔流线自两侧汇聚中心 + 流动粒子 + 点击涟漪
-   品牌色：红褐 #c25b43 主 / 浅红褐 #e8a08c 粒子 / 信息蓝 #5b8def 点缀
+   视觉：
+     - 红褐粒子：左侧进 → 中间汇合点 → 右侧出（路径偏上带）
+     - 信息蓝粒子：右侧进 → 中间汇合点 → 左侧出（路径偏下带）
+     - 上下带错开，路径不重叠，仅在中心汇合点区域交汇
+   品牌色：红褐 #c25b43/#e8a08c 主 + 信息蓝 #5b8def
    降级：prefers-reduced-motion → 静态一帧；visibilitychange 暂停；
         视口越小粒子越少；设备像素比适配
    ============================================================ */
@@ -17,10 +20,11 @@
   if (!ctx) return;
 
   /* ---------- 品牌色（暗底） ---------- */
-  var COLOR_LINE = "rgba(194, 91, 67, 0.28)";        // 红褐流线
-  var COLOR_PARTICLE = "rgba(232, 160, 140, 0.72)";  // 浅红褐粒子（aou-8）
-  var COLOR_PARTICLE_ALT = "rgba(91, 141, 239, 0.55)"; // 信息蓝点缀
-  var COLOR_RING = "rgba(194, 91, 67, 0.22)";        // 涟漪环
+  var COLOR_LINE_LR = "rgba(194, 91, 67, 0.28)";         // 红褐流线（左→右）
+  var COLOR_LINE_RL = "rgba(91, 141, 239, 0.26)";        // 信息蓝流线（右→左）
+  var COLOR_PARTICLE_LR = "rgba(232, 160, 140, 0.72)";   // 浅红褐粒子
+  var COLOR_PARTICLE_RL = "rgba(91, 141, 239, 0.6)";     // 信息蓝粒子
+  var COLOR_RING = "rgba(194, 91, 67, 0.22)";            // 涟漪环
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -36,7 +40,6 @@
   var paths = [];
   var explosions = [];
   var rafId = null;
-  var running = false;
 
   /* ---------- 尺寸（高分屏适配） ---------- */
   function resize() {
@@ -53,16 +56,26 @@
   function buildPaths() {
     paths = [];
     var n = pathCount();
-    for (var i = 0; i < n; i++) {
+    var half = Math.ceil(n / 2);
+    // 红褐（左→右）：startY 分布在上带 [0.06h, 0.52h]
+    for (var i = 0; i < half; i++) {
       paths.push({
-        isLeft: i % 2 === 0,
-        startY: (i / n) * height * 1.4 - height * 0.2,
+        dir: "lr",
+        startY: 0.06 * height + (i / Math.max(1, half - 1)) * (0.46 * height),
+        particles: [{ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 }]
+      });
+    }
+    // 信息蓝（右→左）：startY 分布在下带 [0.48h, 0.94h]
+    for (var j = 0; j < n - half; j++) {
+      paths.push({
+        dir: "rl",
+        startY: 0.48 * height + (j / Math.max(1, (n - half) - 1)) * (0.46 * height),
         particles: [{ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 }]
       });
     }
   }
 
-  /* ---------- 点击涟漪（忠实于原实现） ---------- */
+  /* ---------- 点击涟漪 ---------- */
   function onClick(e) {
     explosions.push({ x: e.clientX, y: e.clientY, radius: 0, life: 1 });
   }
@@ -80,6 +93,35 @@
     };
   }
 
+  /* ---------- 控制点：按方向镜像，左右路径上下带错开、汇合于中心区域 ---------- */
+  function getControls(path) {
+    var centerX = width / 2;
+    var centerY = height / 2;
+    var sy = path.startY;
+    if (path.dir === "lr") {
+      // 左进 → 中上部 → 右出（终点在中线高度附近）
+      return [
+        { x: 0, y: sy },
+        { x: width * 0.26, y: sy },
+        { x: width * 0.78, y: centerY + (sy - centerY) * 0.35 },
+        { x: width, y: centerY + (sy - centerY) * 0.12 }
+      ];
+    }
+    // 右进 → 中下部 → 左出（镜像）
+    return [
+      { x: width, y: sy },
+      { x: width * 0.74, y: sy },
+      { x: width * 0.22, y: centerY + (sy - centerY) * 0.35 },
+      { x: 0, y: centerY + (sy - centerY) * 0.12 }
+    ];
+  }
+
+  function pathStyle(path) {
+    return path.dir === "lr"
+      ? { line: COLOR_LINE_LR, particle: COLOR_PARTICLE_LR }
+      : { line: COLOR_LINE_RL, particle: COLOR_PARTICLE_RL };
+  }
+
   /* ---------- 渲染 ---------- */
   function render() {
     ctx.clearRect(0, 0, width, height);
@@ -93,15 +135,13 @@
     explosions = explosions.filter(function (exp) { return exp.life > 0; });
 
     paths.forEach(function (path) {
-      var p0 = { x: path.isLeft ? 0 : width, y: path.startY };
-      var p1 = { x: path.isLeft ? centerX * 0.5 : width - centerX * 0.5, y: path.startY };
-      var p2 = { x: path.isLeft ? centerX * 0.8 : width - centerX * 0.8, y: centerY };
-      var p3 = { x: centerX, y: centerY };
+      var pts = getControls(path);
+      var style = pathStyle(path);
 
       ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y);
-      ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
-      ctx.strokeStyle = COLOR_LINE;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.bezierCurveTo(pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
+      ctx.strokeStyle = style.line;
       ctx.lineWidth = 1.1;
       ctx.setLineDash([1, 4]);
       ctx.stroke();
@@ -114,7 +154,7 @@
           path.startY += (Math.random() - 0.5) * 10;
         }
 
-        var pos = getBezierPoint(p.t, p0, p1, p2, p3);
+        var pos = getBezierPoint(p.t, pts[0], pts[1], pts[2], pts[3]);
 
         var dxTotal = 0, dyTotal = 0;
         explosions.forEach(function (exp) {
@@ -130,13 +170,12 @@
         pos.x += dxTotal;
         pos.y += dyTotal;
 
-        // 品牌色粒子：主红褐 + 少量信息蓝点缀
-        ctx.fillStyle = (Math.random() < 0.12) ? COLOR_PARTICLE_ALT : COLOR_PARTICLE;
+        ctx.fillStyle = style.particle;
         ctx.fillRect(pos.x - 1.5, pos.y - 1.5, 3, 3);
       });
     });
 
-    // 涟漪环（品牌色）
+    // 涟漪环
     explosions.forEach(function (exp) {
       ctx.beginPath();
       ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI * 2);
@@ -151,24 +190,20 @@
   /* ---------- 静态一帧（reduced-motion） ---------- */
   function drawFrame() {
     ctx.clearRect(0, 0, width, height);
-    var centerX = width / 2;
-    var centerY = height / 2;
     paths.forEach(function (path) {
-      var p0 = { x: path.isLeft ? 0 : width, y: path.startY };
-      var p1 = { x: path.isLeft ? centerX * 0.5 : width - centerX * 0.5, y: path.startY };
-      var p2 = { x: path.isLeft ? centerX * 0.8 : width - centerX * 0.8, y: centerY };
-      var p3 = { x: centerX, y: centerY };
+      var pts = getControls(path);
+      var style = pathStyle(path);
       ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y);
-      ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, p3.x, p3.y);
-      ctx.strokeStyle = COLOR_LINE;
+      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.bezierCurveTo(pts[1].x, pts[1].y, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
+      ctx.strokeStyle = style.line;
       ctx.lineWidth = 1.1;
       ctx.setLineDash([1, 4]);
       ctx.stroke();
       ctx.setLineDash([]);
       path.particles.forEach(function (p) {
-        var pos = getBezierPoint(p.t, p0, p1, p2, p3);
-        ctx.fillStyle = COLOR_PARTICLE;
+        var pos = getBezierPoint(p.t, pts[0], pts[1], pts[2], pts[3]);
+        ctx.fillStyle = style.particle;
         ctx.fillRect(pos.x - 1.5, pos.y - 1.5, 3, 3);
       });
     });
