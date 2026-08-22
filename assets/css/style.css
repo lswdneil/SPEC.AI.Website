@@ -378,9 +378,24 @@ a { color: inherit; }
 
 /* ---------- 页脚 ---------- */
 .site-footer { background: var(--ink); border-top: 1px solid var(--line); color: var(--text-muted); padding: 44px 0 36px; }
-.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; margin-bottom: 36px; }
-.footer-brand { font-weight: 800; color: var(--text-primary); font-size: 16px; display: flex; align-items: center; gap: 9px; margin-bottom: 12px; }
+.footer-grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.footer-intro { flex: 1 1 300px; min-width: 0; }
+.footer-cols { display: flex; gap: 56px; flex-wrap: wrap; }
+.footer-brand { font-weight: 800; color: var(--text-primary); font-size: 16px; display: flex; align-items: center; gap: 9px; }
 .footer-brand img { width: 26px; height: 26px; object-fit: contain; }
+.footer-desc {
+  margin-top: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
 .footer-col h4 { font-size: 13px; color: var(--text-primary); margin-bottom: 14px; letter-spacing: 0.06em; }
 .footer-col a { display: block; font-size: 14px; color: var(--text-secondary); text-decoration: none; margin-bottom: 10px; }
 .footer-col a:hover { color: var(--accent-soft); }
@@ -523,7 +538,8 @@ a { color: inherit; }
   .file-row { grid-template-columns: 1fr; gap: 8px; padding: 16px 0; }
   .file-row.head { display: none; }
   .release { grid-template-columns: 1fr; gap: 14px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  .footer-grid { flex-direction: column; gap: 28px; }
+  .footer-desc { white-space: normal; }
   .nav-links .nav-link-text { display: none; }
   .brand img { width: 48px; height: 48px; }
   .site-nav .container { min-height: 68px; }
