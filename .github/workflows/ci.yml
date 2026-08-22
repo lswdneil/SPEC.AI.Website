@@ -1,0 +1,34 @@
+# ============================================================
+# 1号员工官网 — 发布前自动化测试（CI）
+#
+# 触发：push / PR 到主分支时自动运行
+# 作用：静态校验 + 数据门禁 + 占位符阻断，任一失败则 CI 红，
+#       阻止带问题的版本部署上线（Vercel 可配置为仅在 CI 通过后部署）
+# 本地等价命令：node tests/run-tests.js
+# ============================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pre-publish-tests:
+    name: 发布前自动化测试
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 运行测试（零依赖，无需 npm install）
+        run: node tests/run-tests.js --json
