@@ -76,32 +76,21 @@
         '<span class="arrow" aria-hidden="true">→</span>';
       container.appendChild(btn);
     }
-
-    var meta = el("div", "hero-meta");
-    var chips = [
-      d.product.name + " v" + d.latest.version,
-      "免费 & 开源",
-      "数据本地"
-    ];
-    chips.forEach(function (t) {
-      var s = el("span");
-      s.innerHTML = '<span class="dot" aria-hidden="true"></span>' + t;
-      meta.appendChild(s);
-    });
-
-    container.appendChild(meta);
   }
 
-  /* ---------- 渲染：能力特性 ---------- */
+  /* ---------- 渲染：能力特性（Bento 不对称网格） ---------- */
   function renderCapabilities(container, d) {
     if (!container || !d.capabilities) return;
-    d.capabilities.forEach(function (c) {
-      var item = el("div", "feature-item reveal");
-      item.appendChild(el("div", "feature-num", c.id));
-      var body = el("div");
-      body.appendChild(el("h3", null, c.title));
-      body.appendChild(el("p", null, c.desc));
-      item.appendChild(body);
+    d.capabilities.forEach(function (c, i) {
+      var cls = "cap-item reveal";
+      // Bento 布局：前 2 项大块(6)、中间 3 项小块(4)、最后 1 项横条(12)
+      if (i >= 2 && i < 5) cls += " cap-sm";
+      if (i === 5) cls += " cap-wide";
+
+      var item = el("div", cls);
+      if (c.tag) item.appendChild(el("span", "cap-tag", c.tag));
+      item.appendChild(el("h3", null, c.title));
+      item.appendChild(el("p", null, c.desc));
       container.appendChild(item);
     });
   }
@@ -293,7 +282,7 @@
         el.textContent = "v" + d.latest.version;
       });
       renderHero($("#hero-cta"), d);
-      renderCapabilities($("#capabilities"), d);
+      renderCapabilities($("#caps-grid"), d);
       renderDlGrid($("#dl-grid"), d);
       renderFileRows($("#file-rows"), d);
       renderChangelog($("#changelog-list"), d);

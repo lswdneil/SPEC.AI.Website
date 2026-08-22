@@ -59,7 +59,7 @@ const VOID_TAGS = new Set([
   'link', 'meta', 'param', 'source', 'track', 'wbr',
 ]);
 const REQUIRED_IDS = {
-  'index.html': ['hero-cta', 'capabilities', 'site-nav'],
+  'index.html': ['hero-cta', 'caps-grid', 'site-nav'],
   'download.html': ['dl-grid', 'file-rows', 'site-nav'],
   'changelog.html': ['changelog-list', 'site-nav'],
 };

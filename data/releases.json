@@ -51,31 +51,37 @@
   "capabilities": [
     {
       "id": "01",
+      "tag": "AUTONOMOUS",
       "title": "自主执行",
       "desc": "内置完整编码 Agent 大脑（Pi SDK）：读写文件、执行命令、调用工具，从需求到交付端到端完成。"
     },
     {
       "id": "02",
+      "tag": "ORCHESTRATION",
       "title": "多智能体编排",
       "desc": "5 种团队策略（串行 / 并行 / 审查 / 自我改进 / 自主），自动分析任务、组建 Agent 团队分工协作。"
     },
     {
       "id": "03",
+      "tag": "SELF-EVOLUTION",
       "title": "自我进化",
       "desc": "技能系统 + 记忆整理 + 任务经验库，每次协作都在沉淀，越用越懂你的业务。"
     },
     {
       "id": "04",
+      "tag": "OFFICE",
       "title": "办公生产力",
       "desc": "一句话生成 Word / PPT / Excel，内置 11 个 Office 文档技能，汇报、方案、数据看板随手可得。"
     },
     {
       "id": "05",
+      "tag": "REMOTE",
       "title": "远程随行",
       "desc": "浏览器 WebUI、飞书、钉钉、Telegram 多渠道接入，手机也能和你的员工对话。"
     },
     {
       "id": "06",
+      "tag": "LOCAL-FIRST",
       "title": "数据本地",
       "desc": "SQLite 本地存储，核心能力离线可用，数据只属于你。"
     }

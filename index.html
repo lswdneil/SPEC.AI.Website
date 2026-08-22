@@ -3,13 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>1号员工 — 你的第一位数字员工 | Digital AI Employee 1#</title>
-  <meta name="description" content="1号员工（Digital AI Employee 1#）——一个人公司的第一位数字员工：自主执行、多智能体编排、自我进化、办公文档生成。Windows 正式版下载。">
-  <meta property="og:title" content="1号员工 — 你的第一位数字员工">
+  <title>1号员工，你的第一位数字员工 | Digital AI Employee 1#</title>
+  <meta name="description" content="1号员工（Digital AI Employee 1#），一个人公司的第一位数字员工：自主执行、多智能体编排、自我进化、办公文档生成。Windows 正式版下载。">
+  <meta property="og:title" content="1号员工，你的第一位数字员工">
   <meta property="og:description" content="不是工具，是同事。自主执行、多智能体编排、自我进化。Windows 正式版下载。">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/img/app-hero.png">
+  <meta property="og:image:width" content="1440">
+  <meta property="og:image:height" content="1009">
   <link rel="icon" type="image/svg+xml" href="assets/img/specai-logo.svg">
   <link rel="stylesheet" href="assets/css/style.css">
+  <!-- SoftwareApplication 结构化数据（版本/下载链接随 releases.json 更新时同步修改） -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "1号员工",
+    "alternateName": "Digital AI Employee 1#",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "Windows 10/11",
+    "softwareVersion": "1.1.3",
+    "description": "一个人公司的第一位数字员工：自主执行、多智能体编排、自我进化、办公文档生成。",
+    "url": "https://www.yourdomain.com",
+    "downloadUrl": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/Digital-AI-Employee-Setup-1.1.3.exe",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+  }
+  </script>
 </head>
 <body>
 
@@ -32,59 +51,39 @@
   </header>
 
   <main>
-    <!-- Hero -->
+    <!-- Hero：左文案 / 右真实截图（非对称 Split） -->
     <section class="hero">
       <div class="container hero-inner">
-        <div class="hero-eyebrow fade-item">
-          <span class="dot" aria-hidden="true"></span>
-          v<span data-version>1.1.3</span> · 开源 · Windows 正式版
+        <div>
+          <div class="hero-eyebrow fade-item">
+            <span class="dot" aria-hidden="true"></span>
+            Digital AI Employee 1#
+          </div>
+          <h1 class="fade-item d1">你的第一位<br><span class="accent">数字员工</span></h1>
+          <p class="hero-sub fade-item d2">1号员工不是工具，是同事。它懂你的业务、写你的代码、管你的系统、做你的文档，并和你一起成长。一个人公司，从雇到第一位员工开始。</p>
+          <div id="hero-cta" class="hero-cta fade-item d3"></div>
         </div>
-        <h1 class="fade-item d1">你的第一位<br><span class="accent">数字员工</span></h1>
-        <p class="hero-sub fade-item d2">1号员工不是工具，是同事。它懂你的业务、写你的代码、管你的系统、做你的文档，并和你一起成长——一个人公司，从雇到第一位员工开始。</p>
-        <div id="hero-cta" class="hero-cta fade-item d3"></div>
-        <a href="#capabilities" class="btn btn-ghost-dark fade-item d4">了解它能做什么 ↓</a>
-
-        <!-- 纯 CSS 应用窗口示意图（替换为你的真实截图更佳） -->
-        <div class="app-window fade-item d5" aria-hidden="true">
-          <div class="app-window-bar">
-            <i></i><i></i><i></i>
-            <span class="addr">1号员工 · 工作台</span>
-          </div>
-          <div class="app-window-body">
-            <div class="app-window-main">
-              <span class="kicker">WORKSPACE</span>
-              <h3>今天想完成什么？</h3>
-              <p>把任务交给 1号员工，它会自己拆解、执行、汇报。敏感操作先征求你的批准。</p>
-              <span class="mini-btn">新建任务 →</span>
-            </div>
-            <div class="app-window-side">
-              <div class="side-row"><span>进行中任务</span><b>3</b></div>
-              <div class="side-row"><span>Agent 团队</span><b>2 人</b></div>
-              <div class="side-row"><span>今日已完成</span><b>7</b></div>
-              <div class="side-row"><span>技能库</span><b>11 项</b></div>
-              <div class="side-row"><span>版本</span><b>v1.1.3</b></div>
-            </div>
-          </div>
+        <div class="hero-shot fade-item d4">
+          <img src="assets/img/app-hero.png" alt="1号员工 对话工作台界面截图" width="1440" height="1009">
         </div>
       </div>
     </section>
 
-    <!-- 能力特性（由 releases.json 渲染） -->
+    <!-- 能力特性（Bento 布局，由 releases.json 渲染） -->
     <section class="section" id="capabilities">
       <div class="container">
         <div class="section-head reveal">
           <div class="kicker">Capabilities</div>
           <h2>一位能扛事的员工</h2>
         </div>
-        <div id="capabilities" class="features"></div>
+        <div id="caps-grid" class="caps"></div>
       </div>
     </section>
 
-    <!-- 场景（深色） -->
-    <section class="section section-dark">
+    <!-- 场景（真实截图 Tab） -->
+    <section class="section section-alt section-scene">
       <div class="container">
         <div class="section-head reveal">
-          <div class="kicker">How It Works</div>
           <h2>一个窗口，三种工作方式</h2>
         </div>
 
@@ -95,61 +94,22 @@
         </div>
 
         <div class="scene active" id="scene-work">
-          <div class="scene-window">
-            <div class="scene-grid">
-              <div class="scene-panel wide scene-bars">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-lines">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-lines">
-                <i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-dots">
-                <i></i><i></i><i></i><i></i>
-              </div>
-            </div>
+          <div class="scene-shot">
+            <img src="assets/img/scene-work.png" alt="对话工作台界面截图" width="1440" height="1008">
           </div>
           <p class="scene-caption"><b>对话工作台</b> · 流式回复 · 思考过程可见 · 工具调用状态实时显示</p>
         </div>
 
         <div class="scene" id="scene-team">
-          <div class="scene-window">
-            <div class="scene-grid">
-              <div class="scene-panel scene-lines">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel wide scene-bars">
-                <i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-dots">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-lines">
-                <i></i><i></i><i></i>
-              </div>
-            </div>
+          <div class="scene-shot">
+            <img src="assets/img/scene-team.png" alt="多智能体编排界面截图" width="1440" height="1008">
           </div>
           <p class="scene-caption"><b>多智能体编排</b> · 5 种团队策略 · 自动组队分工 · 审批流人机协作</p>
         </div>
 
         <div class="scene" id="scene-office">
-          <div class="scene-window">
-            <div class="scene-grid">
-              <div class="scene-panel scene-bars">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-lines">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel wide scene-lines">
-                <i></i><i></i><i></i><i></i>
-              </div>
-              <div class="scene-panel scene-dots">
-                <i></i><i></i><i></i><i></i>
-              </div>
-            </div>
+          <div class="scene-shot">
+            <img src="assets/img/scene-office.png" alt="办公文档生成界面截图" width="1440" height="1008">
           </div>
           <p class="scene-caption"><b>办公文档</b> · 一句话生成 Word / PPT / Excel · 内置 11 个 Office 技能</p>
         </div>
@@ -160,20 +120,19 @@
     <section class="section">
       <div class="container">
         <div class="section-head reveal">
-          <div class="kicker">Getting Started</div>
           <h2>三步，雇下你的第一位员工</h2>
         </div>
         <div class="steps">
           <div class="step reveal">
-            <h3>下载安装</h3>
+            <h3><span class="step-no">01</span>下载安装</h3>
             <p>下载 Windows 安装包，双击完成安装，首次启动有引导向导帮你完成配置。</p>
           </div>
           <div class="step reveal">
-            <h3>接入模型</h3>
-            <p>配置你的 LLM Provider（支持 13+ 家），1号员工即可开始思考与工作。</p>
+            <h3><span class="step-no">02</span>接入模型</h3>
+            <p>配置你的 LLM Provider（支持 13+ 家），1号员工 即可开始思考与工作。</p>
           </div>
           <div class="step reveal">
-            <h3>开始委派</h3>
+            <h3><span class="step-no">03</span>开始委派</h3>
             <p>把第一件任务交给它。之后它会自动升级、自我进化，越来越懂你的业务。</p>
           </div>
         </div>
