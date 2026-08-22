@@ -34,9 +34,9 @@ window.I18N = {
   "tab-work": "对话工作台",
   "tab-team": "多智能体编排",
   "tab-office": "办公文档",
-  "cap-work": "流式回复 · 思考过程可见 · 工具调用状态实时显示",
-  "cap-team": "5 种团队策略 · 自动组队分工 · 审批流人机协作",
-  "cap-office": "一句话生成 Word / PPT / Excel · 内置 11 个 Office 技能",
+  "cap-work": "流式回复，思考过程可见，工具调用状态实时显示",
+  "cap-team": "5 种团队策略，自动组队分工，审批流人机协作",
+  "cap-office": "一句话生成 Word / PPT / Excel，内置 11 个 Office 技能",
 
   /* 三步 */
   "steps-title": "三步，雇下您的第一位员工",

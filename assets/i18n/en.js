@@ -30,9 +30,9 @@ window.I18N = {
   "tab-work": "Chat Workspace",
   "tab-team": "Multi-Agent Team",
   "tab-office": "Office Documents",
-  "cap-work": "Streaming replies · Visible thinking · Live tool-call status",
-  "cap-team": "5 team strategies · Auto crew formation · Human-in-the-loop approval",
-  "cap-office": "Word / PPT / Excel from a sentence · 11 built-in Office skills",
+  "cap-work": "Streaming replies, visible thinking, live tool-call status",
+  "cap-team": "5 team strategies, auto crew formation, human-in-the-loop approval",
+  "cap-office": "Word / PPT / Excel from a sentence, 11 built-in Office skills",
 
   "steps-title": "Three Steps to Hire Your First Employee",
   "step-1-t": "Download & Install",
