@@ -57,19 +57,19 @@
     paths = [];
     var n = pathCount();
     var half = Math.ceil(n / 2);
-    // 红褐（左→右）：startY 分布在上带 [0.06h, 0.52h]
+    // 红褐（左→右）：起点分散在上带 [0.08h, 0.58h]，汇聚到中心后向上带扩散
     for (var i = 0; i < half; i++) {
       paths.push({
         dir: "lr",
-        startY: 0.06 * height + (i / Math.max(1, half - 1)) * (0.46 * height),
+        startY: 0.08 * height + (i / Math.max(1, half - 1)) * (0.5 * height),
         particles: [{ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 }]
       });
     }
-    // 信息蓝（右→左）：startY 分布在下带 [0.48h, 0.94h]
+    // 信息蓝（右→左）：起点分散在下带 [0.42h, 0.92h]，汇聚到中心后向下带扩散
     for (var j = 0; j < n - half; j++) {
       paths.push({
         dir: "rl",
-        startY: 0.48 * height + (j / Math.max(1, (n - half) - 1)) * (0.46 * height),
+        startY: 0.42 * height + (j / Math.max(1, (n - half) - 1)) * (0.5 * height),
         particles: [{ t: Math.random(), speed: 0.0015 + Math.random() * 0.002 }]
       });
     }
@@ -93,27 +93,34 @@
     };
   }
 
-  /* ---------- 控制点：按方向镜像，左右路径上下带错开、汇合于中心区域 ---------- */
+  /* ---------- 控制点：汇聚→扩散 ----------
+     lr（红褐）：左侧分散进 → 中心收敛（p2 拉向中线）→ 右上带重新散开出
+     rl（蓝）：  右侧分散进 → 中心收敛 → 左下带重新散开出
+     上下带错开，仅在中心汇合区交汇，路径整体不重叠 */
   function getControls(path) {
     var centerX = width / 2;
     var centerY = height / 2;
     var sy = path.startY;
     if (path.dir === "lr") {
-      // 左进 → 中上部 → 右出（终点在中线高度附近）
       return [
         { x: 0, y: sy },
         { x: width * 0.26, y: sy },
-        { x: width * 0.78, y: centerY + (sy - centerY) * 0.35 },
-        { x: width, y: centerY + (sy - centerY) * 0.12 }
+        { x: width * 0.7, y: centerY },
+        { x: width, y: centerY + (sy - centerY) * 0.7 }
       ];
     }
-    // 右进 → 中下部 → 左出（镜像）
+    // 右进 → 中 → 左出（镜像）
     return [
       { x: width, y: sy },
       { x: width * 0.74, y: sy },
-      { x: width * 0.22, y: centerY + (sy - centerY) * 0.35 },
-      { x: 0, y: centerY + (sy - centerY) * 0.12 }
+      { x: width * 0.3, y: centerY },
+      { x: 0, y: centerY + (sy - centerY) * 0.7 }
     ];
+  }
+
+  /* 中心附近减速（easeInOutQuad）：粒子流向中心时聚集，过中心后加速扩散 */
+  function easeInOut(t) {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
   }
 
   function pathStyle(path) {
@@ -167,7 +174,7 @@
           path.startY += (Math.random() - 0.5) * 10;
         }
 
-        var pos = getBezierPoint(p.t, pts[0], pts[1], pts[2], pts[3]);
+        var pos = getBezierPoint(easeInOut(p.t), pts[0], pts[1], pts[2], pts[3]);
 
         var dxTotal = 0, dyTotal = 0;
         explosions.forEach(function (exp) {
@@ -218,9 +225,9 @@
       ctx.stroke();
       ctx.setLineDash([]);
       path.particles.forEach(function (p) {
-        var pos = getBezierPoint(p.t, pts[0], pts[1], pts[2], pts[3]);
+        var pos = getBezierPoint(easeInOut(p.t), pts[0], pts[1], pts[2], pts[3]);
         ctx.fillStyle = style.particle;
-        ctx.fillRect(pos.x - 1.5, pos.y - 1.5, 3, 3);
+        ctx.fillRect(pos.x - 1.9, pos.y - 1.9, 3.8, 3.8);
       });
     });
   }
