@@ -560,6 +560,7 @@ a { color: inherit; }
   .footer-grid { grid-template-columns: 1fr; gap: 28px; }
   .nav-links .nav-link-text { display: none; }
   .brand-quote { display: none; }
+  .theme-switch { display: none; }
   .brand img { width: 48px; height: 48px; }
   .site-nav .container { height: 68px; }
 }

@@ -50,12 +50,29 @@
   function applyStaticI18n() {
     $all("[data-i18n]").forEach(function (n) {
       var key = n.getAttribute("data-i18n");
-      var val = t(key, n.innerHTML);
-      if (val != null && val !== "") n.innerHTML = val;
+      var val = t(key, "");
+      if (val == null || val === "") return;
+      if (n.children.length === 0) {
+        // 纯文本元素：整体替换
+        n.textContent = val;
+      } else {
+        // 含子元素（如箭头、出处标签）：保留子元素，只替换自身文本节点
+        var textNodes = [];
+        for (var i = 0; i < n.childNodes.length; i++) {
+          if (n.childNodes[i].nodeType === 3) textNodes.push(n.childNodes[i]);
+        }
+        if (textNodes.length) {
+          textNodes[0].textContent = val;
+          for (var j = 1; j < textNodes.length; j++) textNodes[j].remove();
+        } else {
+          n.textContent = val;
+        }
+      }
     });
     $all("[data-i18n-alt]").forEach(function (n) {
       var key = n.getAttribute("data-i18n-alt");
-      n.setAttribute("alt", t(key, n.getAttribute("alt")));
+      var v = t(key, n.getAttribute("alt"));
+      if (v) n.setAttribute("alt", v);
     });
   }
 
