@@ -41,7 +41,8 @@
   /* ---------- i18n ---------- */
   function loadLangDict(lang, cb) {
     var s = document.createElement("script");
-    s.src = "assets/i18n/" + lang + ".js";
+    // 带时间戳绕过浏览器缓存，确保总是加载最新字典
+    s.src = "assets/i18n/" + lang + ".js?t=" + Date.now();
     s.onload = function () { state.dict = window.I18N || {}; cb && cb(); };
     s.onerror = function () { state.dict = null; cb && cb(); };
     document.head.appendChild(s);
