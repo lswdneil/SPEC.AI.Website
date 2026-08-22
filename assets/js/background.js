@@ -20,11 +20,11 @@
   if (!ctx) return;
 
   /* ---------- 品牌色（暗底） ---------- */
-  var COLOR_LINE_LR = "rgba(194, 91, 67, 0.28)";         // 红褐流线（左→右）
-  var COLOR_LINE_RL = "rgba(91, 141, 239, 0.26)";        // 信息蓝流线（右→左）
-  var COLOR_PARTICLE_LR = "rgba(232, 160, 140, 0.72)";   // 浅红褐粒子
-  var COLOR_PARTICLE_RL = "rgba(91, 141, 239, 0.6)";     // 信息蓝粒子
-  var COLOR_RING = "rgba(194, 91, 67, 0.22)";            // 涟漪环
+  var COLOR_LINE_LR = "rgba(194, 91, 67, 0.3)";          // 红褐流线（左→右）
+  var COLOR_LINE_RL = "rgba(91, 141, 239, 0.3)";        // 信息蓝流线（右→左）
+  var COLOR_PARTICLE_LR = "rgba(232, 160, 140, 0.85)";  // 浅红褐粒子
+  var COLOR_PARTICLE_RL = "rgba(110, 158, 244, 0.8)";   // 信息蓝粒子（提亮）
+  var COLOR_RING = "rgba(194, 91, 67, 0.22)";           // 涟漪环
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -134,6 +134,19 @@
     });
     explosions = explosions.filter(function (exp) { return exp.life > 0; });
 
+    // 中心汇合点：双色混合光晕 + 呼吸亮点（让交汇肉眼可见）
+    var pulse = 0.55 + 0.45 * Math.sin(Date.now() / 550);
+    var grad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 70);
+    grad.addColorStop(0, "rgba(232, 160, 140, " + (0.3 * pulse).toFixed(3) + ")");
+    grad.addColorStop(0.45, "rgba(91, 141, 239, " + (0.22 * pulse).toFixed(3) + ")");
+    grad.addColorStop(1, "rgba(16, 18, 22, 0)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(centerX - 70, centerY - 70, 140, 140);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(232, 160, 140, 0.95)";
+    ctx.fill();
+
     paths.forEach(function (path) {
       var pts = getControls(path);
       var style = pathStyle(path);
@@ -170,8 +183,11 @@
         pos.x += dxTotal;
         pos.y += dyTotal;
 
+        // 粒子在中心汇合区（t 接近 0.5）时稍微放大，突出交汇
+        var nearCenter = Math.abs(p.t - 0.5) < 0.12;
+        var s = nearCenter ? 2.6 : 1.9;
         ctx.fillStyle = style.particle;
-        ctx.fillRect(pos.x - 1.5, pos.y - 1.5, 3, 3);
+        ctx.fillRect(pos.x - s, pos.y - s, s * 2, s * 2);
       });
     });
 
