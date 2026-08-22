@@ -18,18 +18,18 @@
       "label": "Windows 10 / 11",
       "hint": "x64 · NSIS 安装包，双击安装",
       "primary": {
-        "name": "Digital-AI-Employee-Setup-1.1.3.exe",
-        "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/Digital-AI-Employee-Setup-1.1.3.exe",
-        "size": "168 MB",
-        "sha256": "REPLACE_WITH_REAL_SHA256_OF_INSTALLER"
+        "name": "specai-1.1.3-win-x64.exe",
+        "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/specai-1.1.3-win-x64.exe",
+        "size": "145.7 MB",
+        "sha256": "dd1912362f875450d7cecd8841adbfe031765e78805a5a8a2580c75e64d899a9"
       },
       "files": [
         {
-          "name": "Digital-AI-Employee-Setup-1.1.3.exe",
+          "name": "specai-1.1.3-win-x64.exe",
           "type": "Windows 安装包（推荐）",
-          "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/Digital-AI-Employee-Setup-1.1.3.exe",
-          "size": "168 MB",
-          "sha256": "REPLACE_WITH_REAL_SHA256_OF_INSTALLER"
+          "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/specai-1.1.3-win-x64.exe",
+          "size": "145.7 MB",
+          "sha256": "dd1912362f875450d7cecd8841adbfe031765e78805a5a8a2580c75e64d899a9"
         }
       ]
     },
