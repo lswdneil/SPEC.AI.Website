@@ -77,4 +77,6 @@ Vercel 边缘节点在中国大陆不稳定，可选：
 
 ---
 
-License：模板可按任意许可使用（建议 MIT）。
+## License
+
+本项目基于 **MIT License** 开源，详见 [LICENSE](LICENSE) 文件。
