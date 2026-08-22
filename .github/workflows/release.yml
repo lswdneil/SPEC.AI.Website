@@ -1,0 +1,90 @@
+# ============================================================
+# 自动发布工作流（模板）
+#
+# 用法：
+#   1. 将本文件放入你的【桌面应用仓库】的 .github/workflows/ 目录
+#      （注意：是放软件源码仓库，不是本官网仓库）
+#   2. 在仓库 Settings → Actions → General 中允许创建 Releases
+#   3. 推送一个 v 开头的 tag（如 v1.1.0），工作流会自动：
+#        - 在 Windows / macOS / Linux 三平台构建安装包
+#        - 生成 SHA256 校验值
+#        - 发布到 GitHub Releases，并附上自动更新所需元数据
+#   4. 发布完成后，把 releases.json 中的下载链接更新为新版本
+#      （可改为手动，也可用 GitHub Actions 自动同步，见 README）
+#
+# 如果用的是 Tauri：把下方 electron-builder 命令替换为
+#   npm run tauri build（产物在 src-tauri/target/release/bundle/）
+# ============================================================
+
+name: Publish Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: windows
+          - os: macos-latest
+            artifact_name: macos
+          - os: ubuntu-latest
+            artifact_name: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: 安装依赖
+        run: npm ci
+
+      # macOS 签名需要证书，先跳过；正式发布请配置
+      # CSC_LINK / CSC_KEY_PASSWORD 环境变量并去掉 --publish never 中的跳过逻辑
+      - name: 构建安装包（electron-builder）
+        run: |
+          npx electron-builder --publish never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 收集产物与生成校验值
+        shell: bash
+        run: |
+          mkdir -p dist/artifacts
+          # 拷贝各平台安装包（按你的 electron-builder 配置调整路径）
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp dist/*.exe dist/artifacts/ 2>/dev/null || true
+            cp dist/*.zip dist/artifacts/ 2>/dev/null || true
+            cp dist/latest.yml dist/artifacts/ 2>/dev/null || true
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            cp dist/*.dmg dist/artifacts/ 2>/dev/null || true
+            cp dist/latest-mac.yml dist/artifacts/ 2>/dev/null || true
+          else
+            cp dist/*.AppImage dist/artifacts/ 2>/dev/null || true
+            cp dist/*.deb dist/artifacts/ 2>/dev/null || true
+            cp dist/latest-linux.yml dist/artifacts/ 2>/dev/null || true
+          fi
+          cd dist/artifacts
+          sha256sum * > SHA256SUMS.txt 2>/dev/null || shasum -a 256 * > SHA256SUMS.txt
+
+      - name: 上传产物到 GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/artifacts/*
+          generate_release_notes: true
+          fail_on_unmatched_files: false

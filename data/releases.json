@@ -1,0 +1,115 @@
+{
+  "product": {
+    "name": "1号员工",
+    "nameEn": "Digital AI Employee 1#",
+    "tagline": "一个人公司的第一位数字员工——不是工具，是同事。",
+    "repo": "https://github.com/lswdneil/Digital-AI-Employee",
+    "homepage": "https://www.yourdomain.com",
+    "license": "开源"
+  },
+  "latest": {
+    "version": "1.1.3",
+    "date": "2026-07-01",
+    "summary": "生产就绪版：EXE 安装包已签名发布，多智能体编排与自我进化能力全量上线。"
+  },
+  "platforms": {
+    "windows": {
+      "id": "windows",
+      "label": "Windows 10 / 11",
+      "hint": "x64 · NSIS 安装包，双击安装",
+      "primary": {
+        "name": "Digital-AI-Employee-Setup-1.1.3.exe",
+        "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/Digital-AI-Employee-Setup-1.1.3.exe",
+        "size": "168 MB",
+        "sha256": "REPLACE_WITH_REAL_SHA256_OF_INSTALLER"
+      },
+      "files": [
+        {
+          "name": "Digital-AI-Employee-Setup-1.1.3.exe",
+          "type": "Windows 安装包（推荐）",
+          "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.1.3/Digital-AI-Employee-Setup-1.1.3.exe",
+          "size": "168 MB",
+          "sha256": "REPLACE_WITH_REAL_SHA256_OF_INSTALLER"
+        }
+      ]
+    },
+    "macos": {
+      "id": "macos",
+      "label": "macOS",
+      "hint": "即将推出 · 敬请期待",
+      "primary": null,
+      "files": []
+    },
+    "linux": {
+      "id": "linux",
+      "label": "Linux",
+      "hint": "即将推出 · 敬请期待",
+      "primary": null,
+      "files": []
+    }
+  },
+  "capabilities": [
+    {
+      "id": "01",
+      "title": "自主执行",
+      "desc": "内置完整编码 Agent 大脑（Pi SDK）：读写文件、执行命令、调用工具，从需求到交付端到端完成。"
+    },
+    {
+      "id": "02",
+      "title": "多智能体编排",
+      "desc": "5 种团队策略（串行 / 并行 / 审查 / 自我改进 / 自主），自动分析任务、组建 Agent 团队分工协作。"
+    },
+    {
+      "id": "03",
+      "title": "自我进化",
+      "desc": "技能系统 + 记忆整理 + 任务经验库，每次协作都在沉淀，越用越懂你的业务。"
+    },
+    {
+      "id": "04",
+      "title": "办公生产力",
+      "desc": "一句话生成 Word / PPT / Excel，内置 11 个 Office 文档技能，汇报、方案、数据看板随手可得。"
+    },
+    {
+      "id": "05",
+      "title": "远程随行",
+      "desc": "浏览器 WebUI、飞书、钉钉、Telegram 多渠道接入，手机也能和你的员工对话。"
+    },
+    {
+      "id": "06",
+      "title": "数据本地",
+      "desc": "SQLite 本地存储，核心能力离线可用，数据只属于你。"
+    }
+  ],
+  "changelog": [
+    {
+      "version": "1.1.3",
+      "date": "2026-07-01",
+      "tag": "v1.1.3",
+      "items": [
+        "生产就绪：EXE 安装包可正常生成并签名",
+        "修复 Pi SDK 对话时序问题（ProviderPool reload + 初始消息）",
+        "24 个历史 Bug 全部修复"
+      ]
+    },
+    {
+      "version": "1.1.0",
+      "date": "2026-06-20",
+      "tag": "v1.1.0",
+      "items": [
+        "多智能体编排系统上线：5 种团队策略",
+        "Office 文档生成引擎接入（OfficeCLI）",
+        "远程渠道：WebUI / 飞书 / 钉钉 / Telegram"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "date": "2026-06-01",
+      "tag": "v1.0.0",
+      "items": [
+        "首个正式版本发布",
+        "自主 Agent 循环 + 会话管理 + 流式响应",
+        "全量测试 1154 项全部通过"
+      ]
+    }
+  ]
+}
