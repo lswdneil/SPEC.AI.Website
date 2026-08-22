@@ -109,6 +109,7 @@ window.I18N = {
 
   /* 硬件接入页 */
   "nav-hardware": "物理接入",
+  "nav-virtual": "虚拟接入",
   "hw-title": "物理世界的AI硬件接入",
   "hw-sub": "AI 智能硬件的接入与匹配、数据搜集整理与 AI 处理，以及更多扩展功能。",
   "hw-devices-title": "支持的设备形态",

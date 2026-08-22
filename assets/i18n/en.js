@@ -100,6 +100,7 @@ window.I18N = {
 
   /* Hardware page */
   "nav-hardware": "Physical Access",
+  "nav-virtual": "Virtual Access",
   "hw-title": "Physical World AI Hardware Access",
   "hw-sub": "Access and matching of AI hardware devices, data collection and organization, AI processing, and more extended capabilities.",
   "hw-devices-title": "Supported Device Forms",

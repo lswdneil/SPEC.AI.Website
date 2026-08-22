@@ -149,4 +149,5 @@ window.I18N = {
   "hw-sub": "AI 하드웨어 접속과 매칭, 데이터 수집·정리, AI 처리, 그리고 더 많은 확장 기능.",
   "hw-title": "물리 세계 AI 하드웨어 접속",
   "nav-hardware": "물리 접속",
+  "nav-virtual": "가상 접속",
 };
