@@ -53,7 +53,7 @@ function test(name, fn) {
 }
 
 /* ---------- 1. HTML 结构 ---------- */
-const HTML_FILES = ['index.html', 'download.html', 'changelog.html', '404.html'];
+const HTML_FILES = ['index.html', 'download.html', 'changelog.html', 'hardware.html', '404.html'];
 const VOID_TAGS = new Set([
   'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
   'link', 'meta', 'param', 'source', 'track', 'wbr',
@@ -62,6 +62,7 @@ const REQUIRED_IDS = {
   'index.html': ['hero-cta', 'caps-grid', 'site-nav'],
   'download.html': ['dl-grid', 'file-rows', 'site-nav'],
   'changelog.html': ['changelog-list', 'site-nav'],
+  'hardware.html': ['site-nav'],
 };
 
 test('HTML 文件存在且标签平衡', () => {
@@ -157,7 +158,7 @@ test('占位符阻断（不得残留待替换值）', () => {
   const targets = ['REPLACE_WITH', 'yourname', 'yourdomain', 'NovaDesk'];
   const scanFiles = [
     'data/releases.json', 'index.html', 'download.html',
-    'changelog.html', '404.html', 'assets/css/style.css',
+    'changelog.html', 'hardware.html', '404.html', 'assets/css/style.css',
     'assets/js/main.js', 'README.md', 'REMINDERS.md', 'vercel.json',
   ];
   for (const f of scanFiles) {
