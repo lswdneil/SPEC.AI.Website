@@ -114,12 +114,15 @@ a { color: inherit; }
 .site-nav.is-scrolled { border-color: var(--line); background: rgba(16, 18, 22, 0.94); }
 .site-nav .container {
   display: flex; align-items: center; justify-content: space-between;
-  height: 76px;
+  min-height: 76px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 .brand {
   display: flex; align-items: center; gap: 14px;
   text-decoration: none;
   min-width: 0;
+  flex: 1 1 auto;
 }
 .brand img {
   width: 60px; height: 60px;
@@ -129,29 +132,30 @@ a { color: inherit; }
 }
 .brand-quote {
   font-size: 12.5px;
-  line-height: 1.45;
+  line-height: 1.5;
   color: var(--text-secondary);
   font-style: italic;
   letter-spacing: 0.01em;
-  white-space: nowrap;
+  min-width: 0;
+  white-space: normal;
 }
 .brand-quote .quote-src {
-  display: block;
+  display: inline;
   font-style: normal;
   font-family: var(--mono);
   font-size: 11px;
   color: var(--text-muted);
-  margin-top: 1px;
+  margin-left: 8px;
 }
 .brand-quote .quote-src::before {
   content: "";
   display: inline-block;
-  width: 18px; height: 1px;
+  width: 14px; height: 1px;
   background: var(--accent);
   vertical-align: middle;
   margin-right: 6px;
 }
-.nav-links { display: flex; align-items: center; gap: 24px; }
+.nav-links { display: flex; align-items: center; gap: 20px; }
 .nav-links a {
   color: var(--text-secondary); text-decoration: none; font-size: 14.5px;
   transition: color 0.18s ease;
@@ -561,12 +565,7 @@ a { color: inherit; }
   .nav-links .nav-link-text { display: none; }
   .theme-switch { display: none; }
   .brand img { width: 48px; height: 48px; }
-  .site-nav .container { height: 68px; }
-}
-
-/* 语录完整显示：宽度不足以容纳完整语录时隐藏（不截断、不省略） */
-@media (max-width: 1100px) {
-  .brand-quote { display: none; }
+  .site-nav .container { min-height: 68px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
