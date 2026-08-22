@@ -127,6 +127,9 @@ test('平台数据与下载链接门禁', () => {
   const errs = [];
   const data = JSON.parse(read('data/releases.json'));
   const repo = data.product.repo.replace(/\/$/, '');
+  // 允许的下载源：GitHub Release（海外/备份）与阿里云 OSS（国内加速）
+  const isAllowedHost = (u) => /^https:\/\/github\.com\//.test(u) || /^https:\/\/specai-agent-no1-installer\.oss-cn-shanghai\.aliyuncs\.com\//.test(u);
+  const hostErr = (u) => isAllowedHost(u) ? '' : '非受信任下载源（应为 GitHub 或阿里云 OSS）';
   for (const key of ['windows', 'macos', 'linux']) {
     const p = data.platforms[key];
     if (!p) { errs.push(`platforms.${key} 缺失`); continue; }
@@ -139,12 +142,12 @@ test('平台数据与下载链接门禁', () => {
       continue;
     }
     const u = p.primary.url || '';
-    if (!/^https:\/\/github\.com\//.test(u)) errs.push(`platforms.${key}.primary.url 非 GitHub 链接`);
-    else if (!u.startsWith(repo + '/')) errs.push(`platforms.${key}.primary.url 与 product.repo 不一致`);
+    if (!isAllowedHost(u)) errs.push(`platforms.${key}.primary.url ${hostErr(u)}`);
+    else if (/^https:\/\/github\.com\//.test(u) && !u.startsWith(repo + '/')) errs.push(`platforms.${key}.primary.url 与 product.repo 不一致`);
     if (!p.primary.name || !p.primary.size || !p.primary.sha256) errs.push(`platforms.${key}.primary 缺少 name/size/sha256`);
     if (Array.isArray(p.files)) {
       for (const f of p.files) {
-        if (!/^https:\/\/github\.com\//.test(f.url || '')) errs.push(`platforms.${key}.files[].url 非 GitHub 链接`);
+        if (!isAllowedHost(f.url || '')) errs.push(`platforms.${key}.files[].url ${hostErr(f.url)}`);
         if (!f.name || !f.size || !f.sha256) errs.push(`platforms.${key}.files[] 缺少 name/size/sha256`);
       }
     }
