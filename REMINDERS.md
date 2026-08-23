@@ -8,7 +8,8 @@
 ## 待办项（网站端）
 
 - [x] **替换占位符**：安装包直链/SHA256/大小 ✅（specai-1.1.3-win-x64.exe）；homepage 已替换为 spec-ai.cn ✅
-- [ ] **域名 spec-ai.cn 审核中**：注册局审核通过后 → 实名 → DNS 托管 Cloudflare → Cloudflare Pages 绑定 `spec-ai.cn` → HTTPS 验证上线（路线：境外不备案 ✅ 已确认）
+- [ ] **域名 spec-ai.cn 上线收尾**：✅ 注册局审核 ✅ 实名（clientHold 已解除）✅ Cloudflare zone 已激活 ✅ NS 已切（merlin/reza）✅ Pages 已绑定 `spec-ai.cn` + `www`（CNAME 记录已手动添加）→ ⏳ 等待 Pages 自定义域名激活（受新账号 pages.dev 服务开通进度影响，后台监测中）→ HTTPS 验证上线
+- [ ] **Cloudflare 维护窗口**：2026-08-29（周六）09:00-10:00 UTC 升级核心数据库，期间 Zone 配置变更（DNS/SSL/Pages 绑定）可能短暂失败，避开该时段操作
 - [x] **阿里云 OSS 国内下载加速**：✅ 已上线 — Windows 安装包主下载已切换为 OSS 直链（国内加速），GitHub Release 保留为海外备用；后续 macOS/Linux 发布时需同步上传 OSS 并更新 `releases.json`
 - [ ] **pages.dev 激活**：周期检查后台运行中（30分钟/次），激活后自动通知；激活后先以 pages.dev 上线，域名生效后绑定 spec-ai.cn
 - [ ] **核对截图对应**：截图是按文件名语义选配的，请人工核对每张图内容与标题是否对应，不符则替换 `assets/img/scene-*.png`
