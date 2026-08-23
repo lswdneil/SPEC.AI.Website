@@ -297,5 +297,8 @@ window.I18N = {
   "ent-pricing-title": "Pricing model",
   "ent-pricing-desc": "Quoted by seats and deployment scale, annual contracts and corporate procurement supported.",
   "ent-mail-btn": "Email sales",
-  "ent-gh-btn": "Ask on GitHub"
+  "ent-gh-btn": "Ask on GitHub",
+
+  /* Home download entries */
+  "hero-soon": "Coming soon"
 };

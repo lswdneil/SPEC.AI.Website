@@ -294,5 +294,8 @@ window.I18N = {
   "ent-pricing-title": "요금 체계",
   "ent-pricing-desc": "좌석 수와 배포 규모에 따른 견적, 연간 계약 및 법인 조달 지원.",
   "ent-mail-btn": "이메일 문의",
-  "ent-gh-btn": "GitHub 문의"
+  "ent-gh-btn": "GitHub 문의",
+
+  /* 홈 다운로드 입구 */
+  "hero-soon": "출시 예정"
 };

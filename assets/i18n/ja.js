@@ -294,5 +294,8 @@ window.I18N = {
   "ent-pricing-title": "料金体系",
   "ent-pricing-desc": "席数と展開規模に応じた見積もり、年間契約と法人調達に対応。",
   "ent-mail-btn": "メールで問い合わせ",
-  "ent-gh-btn": "GitHub で問い合わせ"
+  "ent-gh-btn": "GitHub で問い合わせ",
+
+  /* ホームダウンロード入口 */
+  "hero-soon": "近日公開"
 };

@@ -306,5 +306,8 @@ window.I18N = {
   "ent-pricing-title": "定价模式",
   "ent-pricing-desc": "按席位与部署规模报价，支持年度合同与对公采购。",
   "ent-mail-btn": "邮件联系专员",
-  "ent-gh-btn": "GitHub 咨询"
+  "ent-gh-btn": "GitHub 咨询",
+
+  /* 首页下载入口 */
+  "hero-soon": "即将推出"
 };

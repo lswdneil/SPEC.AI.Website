@@ -107,27 +107,38 @@
   var OS_ICONS = {
     windows: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10.6 4.4v7.2H3V5.5Zm0 13 7.6 1.1v-7.3H3v6.2Zm8.6 1.3L21 21V12.4h-9.4v7.4Zm0-15.6v7.4H21V3l-9.4 1.2Z"/></svg>',
     macos: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.3 12.7c0-2.7 2.2-4 2.3-4.1-1.3-1.8-3.2-2.1-3.9-2.1-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-1-1.8 0-3.4 1-4.3 2.7-1.9 3.2-.5 8 1.3 10.6.9 1.3 2 2.8 3.4 2.7 1.4 0 1.9-.9 3.6-.9 1.7 0 2 .9 3.6-.9 1.4-1.9 1.9-3.8 1.9-3.9-.1 0-3.7-1.5-3.7-5Z"/><path d="M14.7 4.6c.7-.9 1.2-2.1 1.1-3.3-1 0-2.3.7-3 1.6-.7.8-1.3 2-1.1 3.2 1.2.1 2.4-.6 3-1.5Z"/></svg>',
-    linux: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-1.7 0-3 1.3-3 3 0 .5.1.9.3 1.3L6.4 10.7c-.4.4-.6.9-.6 1.5v5.4c0 1 .8 1.8 1.8 1.8h.9l.9 2.2c.2.6.8 1 1.4 1h2.4c.6 0 1.2-.4 1.4-1l.9-2.2h.9c1 0 1.8-.8 1.8-1.8v-5.4c0-.6-.2-1.1-.6-1.5l-2.9-3.4c.2-.4.3-.8.3-1.3 0-1.7-1.3-3-3-3Zm0 2c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1Zm-3 6.7 2.6-3.1c.4.2.9.4 1.4.4s1-.2 1.4-.4l2.6 3.1c.1.1.2.2.2.3v5.4H9v-5.4c0-.1.1-.2.2-.3Z"/></svg>'
+    linux: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c-1.7 0-3 1.3-3 3 0 .5.1.9.3 1.3L6.4 10.7c-.4.4-.6.9-.6 1.5v5.4c0 1 .8 1.8 1.8 1.8h.9l.9 2.2c.2.6.8 1 1.4 1h2.4c.6 0 1.2-.4 1.4-1l.9-2.2h.9c1 0 1.8-.8 1.8-1.8v-5.4c0-.6-.2-1.1-.6-1.5l-2.9-3.4c.2-.4.3-.8.3-1.3 0-1.7-1.3-3-3-3Zm0 2c.6 0 1 .4 1 1s-.4 1-1 1-1-.4-1-1 .4-1 1-1Zm-3 6.7 2.6-3.1c.4.2.9.4 1.4.4s1-.2 1.4-.4l2.6 3.1c.1.1.2.2.2.3v5.4H9v-5.4c0-.1.1-.2.2-.3Z"/></svg>',
+    android: '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2c1 0 2 .4 2.7 1.1l.7-.7c.2-.2.5-.2.7 0 .2.2.2.5 0 .7l-.9.9c.6.5 1 .8 1 1.2H7.8c0-.4.4-.7 1-1.2l-.9-.9c-.2-.2-.2-.5 0-.7.2-.2.5-.2.7 0l.7.7C10 2.6 11 2.2 12 2.2Zm-4.5 5h9A2.5 2.5 0 0 1 19 9.7V14a2.5 2.5 0 0 1-2.5 2.5h-.6l1.3 1.9c.2.3.1.7-.2.9-.3.2-.7.1-.9-.2L15 19H9l-1.1 2.2c-.2.3-.6.4-.9.2-.3-.2-.4-.6-.2-.9l1.3-1.9h-.6A2.5 2.5 0 0 1 5 14V9.7A2.5 2.5 0 0 1 7.5 7.2Zm-.5 5.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm10 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>'
   };
 
-  /* ---------- 渲染：hero 下载按钮 ---------- */
+  /* ---------- 渲染：hero 下载入口（Windows/macOS/Android/Linux 四入口，未发布显示即将推出） ---------- */
+  var OS_NAMES = { windows: "Windows", macos: "macOS", android: "Android", linux: "Linux" };
+  var HERO_KEYS = ["windows", "macos", "android", "linux"];
+
   function renderHero(container, d) {
     if (!container) return;
     container.innerHTML = "";
-    var map = { windows: "windows", macos: "macos", linux: "linux" };
-    var key = map[state.os] || "windows";
-    var p = d.platforms[key];
-
-    if (p && p.primary) {
-      var btn = el("a", "btn btn-primary");
-      btn.href = p.primary.url;
-      btn.setAttribute("download", "");
-      var osName = p.label.split(" ")[0];
-      var label = t("dl-for", "下载 " + d.product.name + " for " + osName)
-        .replace(/\{name\}/g, d.product.name).replace(/\{os\}/g, osName);
-      btn.innerHTML = OS_ICONS[key] + "<span>" + label + "</span>" + '<span class="arrow" aria-hidden="true">→</span>';
-      container.appendChild(btn);
-    }
+    var grid = el("div", "hero-dl-grid");
+    HERO_KEYS.forEach(function (key) {
+      var p = d.platforms[key];
+      var name = OS_NAMES[key] || key;
+      var btn;
+      if (p && p.primary) {
+        btn = el("a", "btn btn-primary");
+        btn.href = p.primary.url;
+        btn.setAttribute("download", "");
+        var label = t("dl-for", "下载 " + d.product.name + " for " + name)
+          .replace(/\{name\}/g, d.product.name).replace(/\{os\}/g, name);
+        btn.innerHTML = OS_ICONS[key] + "<span>" + label + "</span>";
+      } else {
+        // 预留入口：未发布平台点击跳转下载页
+        btn = el("a", "btn btn-ghost-dark");
+        btn.href = "download.html";
+        btn.innerHTML = OS_ICONS[key] + "<span>" + name + " " + t("hero-soon", "即将推出") + "</span>";
+      }
+      grid.appendChild(btn);
+    });
+    container.appendChild(grid);
   }
 
   /* ---------- 渲染：能力特性（Bento，i18n） ---------- */

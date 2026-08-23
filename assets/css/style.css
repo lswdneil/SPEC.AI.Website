@@ -270,6 +270,23 @@ a { color: inherit; }
 
 .hero-cta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 0; }
 
+/* Hero 四平台下载入口 */
+.hero-dl-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  max-width: 700px;
+}
+.hero-dl-grid .btn {
+  justify-content: center;
+  font-size: 13.5px;
+  font-weight: 700;
+  padding: 11px 10px;
+  white-space: nowrap;
+}
+.hero-dl-grid .btn svg { flex: none; }
+.hero-dl-grid .btn span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
 .btn {
   display: inline-flex; align-items: center; gap: 10px;
   font-size: 16px; font-weight: 700;
@@ -593,6 +610,7 @@ a { color: inherit; }
   .hero-inner { grid-template-columns: 1fr; gap: 40px; }
   .hero { text-align: left; }
   .hero-cta { justify-content: flex-start; }
+  .hero-dl-grid { grid-template-columns: repeat(2, 1fr); }
   .caps { grid-template-columns: 1fr; }
   .cap-item, .cap-sm, .cap-wide { grid-column: span 1; }
   .cap-wide { grid-template-columns: 1fr; }
