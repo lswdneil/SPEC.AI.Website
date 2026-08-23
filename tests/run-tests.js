@@ -227,6 +227,12 @@ test('main.js 语法检查', () => {
   return r.status === 0 ? [] : [r.stderr || 'node --check 失败'];
 });
 
+test('_worker.js 语法检查（后端 API worker）', () => {
+  if (!exists('_worker.js')) return ['_worker.js 不存在'];
+  const r = spawnSync(process.execPath, ['--check', path.join(ROOT, '_worker.js')], { encoding: 'utf8' });
+  return r.status === 0 ? [] : [r.stderr || 'node --check 失败'];
+});
+
 /* ---------- 6. CSS 平衡 ---------- */
 test('style.css 括号平衡', () => {
   if (!exists('assets/css/style.css')) return ['assets/css/style.css 不存在'];
