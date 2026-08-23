@@ -255,5 +255,22 @@ window.I18N = {
   "auth-msg-reset-ok": "パスワードを再設定しました。ログインしてください",
   "auth-err-not-found": "アカウントが見つかりません",
   "auth-new-password": "新しいパスワード（8 文字以上）",
-  "auth-password-ph": "8 文字以上"
+  "auth-password-ph": "8 文字以上",
+
+  /* アカウントセキュリティ */
+  "sec-title": "セキュリティ",
+  "sec-old-password": "現在のパスワード",
+  "sec-new-password": "新しいパスワード",
+  "sec-submit-change": "パスワードを変更",
+  "sec-msg-changed": "パスワードを変更しました。再ログインしてください",
+  "sec-err-old": "現在のパスワードが正しくありません",
+  "sec-no-password": "電話アカウントにはパスワードがありません（コードでログイン）",
+  "sec-revoke": "全デバイスからログアウト",
+  "sec-msg-revoked": "全セッションを失効しました。再ログインしてください",
+  "sec-deactivate": "アカウント削除",
+  "sec-deactivate-hint": "削除後は復元できません。ご注意ください",
+  "sec-deactivate-confirm": "削除を確定",
+  "sec-msg-deactivated": "アカウントを削除しました",
+  "sec-phone-code": "認証コード",
+  "sec-send-code": "コード取得"
 };

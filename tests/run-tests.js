@@ -65,7 +65,7 @@ const REQUIRED_IDS = {
   'hardware.html': ['site-nav', 'bg-canvas'],
   '404.html': ['bg-canvas'],
   'login.html': ['auth-form', 'auth-submit', 'auth-send-code', 'site-nav', 'bg-canvas'],
-  'account.html': ['acc-body', 'acc-logout', 'site-nav', 'bg-canvas'],
+  'account.html': ['acc-body', 'acc-logout', 'sec-change-btn', 'sec-revoke', 'sec-deactivate', 'site-nav', 'bg-canvas'],
   'pricing.html': ['pr-subscribe', 'pr-order', 'site-nav', 'bg-canvas'],
 };
 

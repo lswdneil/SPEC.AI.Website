@@ -267,5 +267,22 @@ window.I18N = {
   "auth-msg-reset-ok": "密码已重置，请登录",
   "auth-err-not-found": "账号不存在",
   "auth-new-password": "新密码，至少 8 位",
-  "auth-password-ph": "至少 8 位"
+  "auth-password-ph": "至少 8 位",
+
+  /* 账户安全 */
+  "sec-title": "安全",
+  "sec-old-password": "当前密码",
+  "sec-new-password": "新密码",
+  "sec-submit-change": "修改密码",
+  "sec-msg-changed": "密码已修改，请重新登录",
+  "sec-err-old": "当前密码不正确",
+  "sec-no-password": "手机账号无密码，可通过验证码登录",
+  "sec-revoke": "退出所有设备",
+  "sec-msg-revoked": "已退出所有设备，请重新登录",
+  "sec-deactivate": "注销账号",
+  "sec-deactivate-hint": "注销后账号将无法恢复，请谨慎操作",
+  "sec-deactivate-confirm": "确认注销",
+  "sec-msg-deactivated": "账号已注销",
+  "sec-phone-code": "验证码",
+  "sec-send-code": "获取验证码"
 };

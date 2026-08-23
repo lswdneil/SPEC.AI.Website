@@ -75,6 +75,47 @@
               </div>
             </div>
 
+            <!-- 安全 -->
+            <div class="acc-block">
+              <h2 class="acc-block-title" data-i18n="sec-title">安全</h2>
+
+              <div id="sec-change" class="acc-sec">
+                <p class="auth-field">
+                  <label for="sec-old" data-i18n="sec-old-password">当前密码</label>
+                  <input id="sec-old" type="password" autocomplete="current-password">
+                </p>
+                <p class="auth-field">
+                  <label for="sec-new" data-i18n="sec-new-password">新密码</label>
+                  <input id="sec-new" type="password" autocomplete="new-password">
+                </p>
+                <button type="button" id="sec-change-btn" class="btn btn-ghost-dark" data-i18n="sec-submit-change">修改密码</button>
+                <p class="auth-msg" id="sec-change-msg"></p>
+              </div>
+              <p class="auth-hint" id="sec-no-password" hidden data-i18n="sec-no-password">手机账号无密码，可通过验证码登录</p>
+
+              <div class="acc-actions acc-sec-actions">
+                <button type="button" id="sec-revoke" class="btn btn-ghost-dark" data-i18n="sec-revoke">退出所有设备</button>
+                <button type="button" id="sec-deactivate" class="btn btn-danger" data-i18n="sec-deactivate">注销账号</button>
+              </div>
+              <p class="auth-hint" data-i18n="sec-deactivate-hint">注销后账号将无法恢复，请谨慎操作</p>
+
+              <div id="sec-deact-form" hidden>
+                <p class="auth-field" id="sec-deact-pw-wrap">
+                  <label for="sec-deact-pw" data-i18n="sec-old-password">当前密码</label>
+                  <input id="sec-deact-pw" type="password" autocomplete="current-password">
+                </p>
+                <p class="auth-field" id="sec-deact-code-wrap" hidden>
+                  <label for="sec-deact-code" data-i18n="sec-phone-code">验证码</label>
+                  <div class="auth-code-row">
+                    <input id="sec-deact-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code">
+                    <button type="button" id="sec-deact-send" class="btn btn-ghost-dark" data-i18n="sec-send-code">获取验证码</button>
+                  </div>
+                </p>
+                <button type="button" id="sec-deact-confirm" class="btn btn-danger" data-i18n="sec-deactivate-confirm">确认注销</button>
+                <p class="auth-msg" id="sec-deact-msg"></p>
+              </div>
+            </div>
+
             <!-- 绑定设备 -->
             <div class="acc-block">
               <h2 class="acc-block-title" data-i18n="lic-devices-title">绑定设备</h2>

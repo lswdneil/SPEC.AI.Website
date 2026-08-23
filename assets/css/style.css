@@ -754,6 +754,14 @@ a { color: inherit; }
 .acc-history-time { color: var(--text-secondary); }
 .acc-history-empty { color: var(--text-muted); font-size: 13.5px; padding: 12px 0; }
 .acc-actions { margin-top: 22px; }
+.acc-sec { margin-bottom: 18px; }
+.acc-sec-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(224, 96, 90, 0.5);
+  color: #e0605a;
+}
+.btn-danger:hover { background: rgba(224, 96, 90, 0.12); }
 @media (max-width: 560px) {
   .acc-stats { grid-template-columns: 1fr; }
 }

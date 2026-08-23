@@ -453,6 +453,7 @@ function publicUser(u) {
     phone: u.phone || null,
     plan: u.plan || 'free',
     planExpiresAt: u.plan_expires_at || null,
+    hasPassword: !!u.pass_hash,
     createdAt: u.created_at
   };
 }

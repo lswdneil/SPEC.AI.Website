@@ -106,6 +106,116 @@
     });
   }
 
+  function secMsg(el, text, type) {
+    el.textContent = text || '';
+    el.className = 'auth-msg' + (type ? ' ' + type : '');
+  }
+
+  function secErrorText(err) {
+    var map = {
+      bad_credentials: 'sec-err-old',
+      invalid_password: 'auth-err-password',
+      code_required: 'auth-err-code-required',
+      code_invalid: 'auth-err-code',
+      code_used: 'auth-err-code',
+      code_expired: 'auth-err-code-expired',
+      too_many_requests: 'auth-err-limited'
+    };
+    return t(map[err] || 'auth-err-generic', '操作失败，请稍后再试');
+  }
+
+  function clearSessionAndGo(url, ms) {
+    try { localStorage.removeItem(TOKEN_KEY); localStorage.removeItem('specai_user'); } catch (e) { /* ignore */ }
+    setTimeout(function () { window.location.href = url; }, ms || 1200);
+  }
+
+  function initSecurity(user) {
+    var changeBox = document.getElementById('sec-change');
+    var noPwHint = document.getElementById('sec-no-password');
+    if (!user.hasPassword) {
+      changeBox.hidden = true;
+      noPwHint.hidden = false;
+    }
+
+    var changeMsg = document.getElementById('sec-change-msg');
+    document.getElementById('sec-change-btn').addEventListener('click', function () {
+      var oldPw = document.getElementById('sec-old').value;
+      var newPw = document.getElementById('sec-new').value;
+      if (newPw.length < 8) { secMsg(changeMsg, t('auth-err-password', '密码至少 8 位'), 'error'); return; }
+      apiPost('/api/auth/change-password', { oldPassword: oldPw, newPassword: newPw })
+        .then(function (r) {
+          if (r.status === 200 && r.data.ok) {
+            secMsg(changeMsg, t('sec-msg-changed', '密码已修改，请重新登录'), 'ok');
+            clearSessionAndGo('login.html');
+          } else {
+            secMsg(changeMsg, secErrorText(r.data.error), 'error');
+          }
+        })
+        .catch(function () { secMsg(changeMsg, t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+
+    document.getElementById('sec-revoke').addEventListener('click', function () {
+      apiPost('/api/auth/revoke-all', {})
+        .then(function (r) {
+          if (r.status === 200 && r.data.ok) {
+            secMsg(changeMsg, t('sec-msg-revoked', '已退出所有设备，请重新登录'), 'ok');
+            clearSessionAndGo('login.html');
+          } else {
+            secMsg(changeMsg, secErrorText(r.data.error), 'error');
+          }
+        })
+        .catch(function () { secMsg(changeMsg, t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+
+    var deactForm = document.getElementById('sec-deact-form');
+    var pwWrap = document.getElementById('sec-deact-pw-wrap');
+    var codeWrap = document.getElementById('sec-deact-code-wrap');
+    var deactMsg = document.getElementById('sec-deact-msg');
+
+    document.getElementById('sec-deactivate').addEventListener('click', function () {
+      deactForm.hidden = !deactForm.hidden;
+      secMsg(deactMsg, '');
+      if (user.hasPassword) { pwWrap.hidden = false; codeWrap.hidden = true; }
+      else { pwWrap.hidden = true; codeWrap.hidden = false; }
+    });
+
+    document.getElementById('sec-deact-send').addEventListener('click', function () {
+      apiPost('/api/auth/send-code', { target: user.phone, purpose: 'login' })
+        .then(function (r) {
+          secMsg(deactMsg, r.status === 200 && r.data.ok
+            ? t('auth-msg-sent', '验证码已发送') : secErrorText(r.data.error), r.status === 200 ? 'ok' : 'error');
+        })
+        .catch(function () { secMsg(deactMsg, t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+
+    document.getElementById('sec-deact-confirm').addEventListener('click', function () {
+      var body = user.hasPassword
+        ? { password: document.getElementById('sec-deact-pw').value }
+        : { code: document.getElementById('sec-deact-code').value.trim() };
+      apiPost('/api/auth/deactivate', body)
+        .then(function (r) {
+          if (r.status === 200 && r.data.ok) {
+            secMsg(deactMsg, t('sec-msg-deactivated', '账号已注销'), 'ok');
+            clearSessionAndGo('index.html');
+          } else {
+            secMsg(deactMsg, secErrorText(r.data.error), 'error');
+          }
+        })
+        .catch(function () { secMsg(deactMsg, t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+  }
+
+  function apiPost(path, body) {
+    var tok = token();
+    return fetch(path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tok },
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      return r.json().then(function (d) { return { status: r.status, data: d }; });
+    });
+  }
+
   function init() {
     if (!token()) { window.location.href = 'login.html'; return; }
     var loading = document.getElementById('acc-loading');
@@ -123,6 +233,7 @@
       loading.hidden = true;
       body.hidden = false;
       render(me.data.user, statsData, recent, licData);
+      initSecurity(me.data.user);
     }).catch(function () {
       loading.textContent = t('acc-err-net', '网络异常，请稍后再试');
     });

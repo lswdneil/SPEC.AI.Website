@@ -83,6 +83,7 @@ async function main() {
   r = await call('/api/auth/register', { method: 'email', email: 'user@example.com', password: 'password123', code });
   assert('register 成功', r.status === 200 && r.data.ok && r.data.token, JSON.stringify(r.data));
   assert('register 返回 email', r.data.user && r.data.user.email === 'user@example.com');
+  assert('邮箱用户 hasPassword', r.data.user && r.data.user.hasPassword === true, JSON.stringify(r.data.user));
   let token = r.data.token;
 
   r = await call('/api/auth/send-code', { target: 'user@example.com', purpose: 'register' });
@@ -121,6 +122,7 @@ async function main() {
   assert('手机发码', typeof phoneCode === 'string', String(r.data));
   r = await call('/api/auth/register', { method: 'phone', phone: '13800138000', code: phoneCode });
   assert('手机注册成功', r.status === 200 && r.data.ok && r.data.user.phone === '13800138000', JSON.stringify(r.data));
+  assert('手机用户 hasPassword=false', r.data.user && r.data.user.hasPassword === false, JSON.stringify(r.data.user));
   r = await call('/api/auth/send-code', { target: '13800138000', purpose: 'login' });
   const loginCode = r.data.devCode;
   r = await call('/api/auth/login', { method: 'phone', phone: '13800138000', code: loginCode });

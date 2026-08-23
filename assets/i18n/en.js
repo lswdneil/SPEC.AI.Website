@@ -258,5 +258,22 @@ window.I18N = {
   "auth-msg-reset-ok": "Password reset, please log in",
   "auth-err-not-found": "Account not found",
   "auth-new-password": "New password, at least 8 characters",
-  "auth-password-ph": "At least 8 characters"
+  "auth-password-ph": "At least 8 characters",
+
+  /* Account security */
+  "sec-title": "Security",
+  "sec-old-password": "Current password",
+  "sec-new-password": "New password",
+  "sec-submit-change": "Change password",
+  "sec-msg-changed": "Password changed, please log in again",
+  "sec-err-old": "Current password is incorrect",
+  "sec-no-password": "Phone accounts have no password (log in with a code)",
+  "sec-revoke": "Sign out all devices",
+  "sec-msg-revoked": "All sessions revoked, please log in again",
+  "sec-deactivate": "Delete account",
+  "sec-deactivate-hint": "This cannot be undone, please proceed with caution",
+  "sec-deactivate-confirm": "Confirm deletion",
+  "sec-msg-deactivated": "Account deleted",
+  "sec-phone-code": "Verification code",
+  "sec-send-code": "Get code"
 };

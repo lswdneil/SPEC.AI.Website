@@ -255,5 +255,22 @@ window.I18N = {
   "auth-msg-reset-ok": "비밀번호가 재설정되었습니다. 로그인하세요",
   "auth-err-not-found": "계정을 찾을 수 없습니다",
   "auth-new-password": "새 비밀번호 (8자 이상)",
-  "auth-password-ph": "8자 이상"
+  "auth-password-ph": "8자 이상",
+
+  /* 계정 보안 */
+  "sec-title": "보안",
+  "sec-old-password": "현재 비밀번호",
+  "sec-new-password": "새 비밀번호",
+  "sec-submit-change": "비밀번호 변경",
+  "sec-msg-changed": "비밀번호가 변경되었습니다. 다시 로그인하세요",
+  "sec-err-old": "현재 비밀번호가 올바르지 않습니다",
+  "sec-no-password": "전화 계정에는 비밀번호가 없습니다(코드로 로그인)",
+  "sec-revoke": "모든 기기에서 로그아웃",
+  "sec-msg-revoked": "모든 세션이 만료되었습니다. 다시 로그인하세요",
+  "sec-deactivate": "계정 삭제",
+  "sec-deactivate-hint": "삭제 후 복구할 수 없습니다. 신중히 진행하세요",
+  "sec-deactivate-confirm": "삭제 확인",
+  "sec-msg-deactivated": "계정이 삭제되었습니다",
+  "sec-phone-code": "인증 코드",
+  "sec-send-code": "코드 받기"
 };
