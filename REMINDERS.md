@@ -18,6 +18,7 @@
 - [ ] **自动更新联调**：electron-updater 的 `latest.yml` 发布链路（属产品端，网站端需在发布后同步版本信息到 `releases.json`）
 
 - [x] **多语支持**：官网已支持中/英/日/韩四语切换（导航语言按钮，localStorage 记忆）；新文案需同步维护 assets/i18n/ 四语字典
+- [x] **访问统计**：✅ Cloudflare Web Analytics 已开通（自动模式，spec-ai.cn，siteTag `ca2da7376ad74236bb68bad65b62e520`）；零代码注入，Pages 开通后自动统计；入口 dash.cloudflare.com → 数据分析 → Web Analytics
 
 ## 给产品端的提醒（不代改，仅提醒）
 
