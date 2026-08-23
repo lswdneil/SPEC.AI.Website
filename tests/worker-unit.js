@@ -126,6 +126,39 @@ async function main() {
   r = await call('/api/auth/login', { method: 'phone', phone: '13800138000', code: loginCode });
   assert('验证码复用被拒', r.status !== 200, JSON.stringify(r.data));
 
+  console.log('— 计划与订阅');
+  r = await call('/api/plans');
+  assert('plans 公开可查', r.status === 200 && r.data.ok && Array.isArray(r.data.plans), JSON.stringify(r.data));
+  const pro = (r.data.plans || []).find(function (p) { return p.id === 'pro'; });
+  assert('pro 计划价格存在', pro && pro.monthlyCents === 1990, JSON.stringify(pro));
+
+  r = await call('/api/subscription/orders', { plan: 'pro', period: 'monthly' });
+  assert('下单需登录 401', r.status === 401, JSON.stringify(r.data));
+
+  r = await call('/api/subscription/orders', { plan: 'pro', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  assert('创建订单成功', r.status === 200 && r.data.ok && r.data.order.orderNo, JSON.stringify(r.data));
+  assert('订单金额正确', r.data.order.amountCents === 1990, JSON.stringify(r.data.order));
+  assert('devMode 返回', r.data.devMode === true, JSON.stringify(r.data));
+  const orderNo = r.data.order.orderNo;
+
+  r = await call('/api/subscription/orders', { plan: 'free', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  assert('免费版下单被拒', r.status === 400 && r.data.error === 'plan_free', JSON.stringify(r.data));
+
+  r = await call('/api/subscription/orders', null, { Authorization: 'Bearer ' + token });
+  assert('订单列表包含新订单', r.status === 200 && r.data.ok && r.data.orders.some(function (o) { return o.orderNo === orderNo; }), JSON.stringify(r.data));
+
+  r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
+  assert('订阅初始为 free', r.status === 200 && r.data.subscription.plan === 'free', JSON.stringify(r.data));
+
+  r = await call('/api/subscription/activate', { orderNo: orderNo }, { Authorization: 'Bearer ' + token });
+  assert('激活订单（dev）', r.status === 200 && r.data.ok && r.data.subscription.plan === 'pro', JSON.stringify(r.data));
+
+  r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
+  assert('订阅升级为 pro', r.status === 200 && r.data.subscription.plan === 'pro' && r.data.subscription.status === 'active', JSON.stringify(r.data));
+
+  r = await call('/api/payment/notify', { orderNo: orderNo });
+  assert('支付回调预留 501', r.status === 501 && r.data.error === 'payment_not_configured', JSON.stringify(r.data));
+
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});
   const sbody = await sres.text();

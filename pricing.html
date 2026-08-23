@@ -3,19 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>更新日志 | 1号员工</title>
-  <meta name="description" content="1号员工（Digital AI Employee 1#）各版本更新日志与发布说明。">
+  <title>定价 | 1号员工</title>
+  <meta name="description" content="1号员工 订阅方案：免费版与 Pro 版，按需选择。">
   <link rel="icon" type="image/png" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="stylesheet" href="assets/css/style.css?v=2">
+  <link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body>
 
-  
   <canvas id="bg-canvas" class="bg-canvas" aria-hidden="true"></canvas>
-<header class="site-nav" id="site-nav">
+  <header class="site-nav" id="site-nav">
     <div class="container">
-            <a class="brand" href="index.html">
+      <a class="brand" href="index.html">
         <img src="assets/img/logo-nav.png" alt="1号员工 logo">
         <span class="brand-quote" data-i18n="brand-quote">Only those who will risk going too far can possibly find out how far one can go.<span class="quote-src" data-i18n="brand-quote-src">T. S. Eliot</span></span>
       </a>
@@ -28,8 +27,6 @@
           <span data-i18n="nav-github">GitHub</span>
         </a>
         <a class="nav-gh nav-gh-brand" href="hardware.html" data-i18n="nav-hardware">物理接入</a>
-        
-      
         <a class="nav-link-text nav-auth" href="login.html" data-i18n="nav-login">登录</a>
         <select class="lang-select" aria-label="Language" title="Language">
           <option value="zh">中文</option>
@@ -44,22 +41,63 @@
   <main>
     <section class="page-hero">
       <div class="container">
-        <h1 data-i18n="log-title">更新日志</h1>
-        <p><span data-i18n="dl-ver-prefix">当前版本</span> <span class="info-blue">v<span data-version>1.1.3</span></span></p>
-        <p data-i18n="log-desc">每个版本的详细说明也同步发布在 GitHub Releases。</p>
+        <h1 data-i18n="pr-title">定价</h1>
+        <p data-i18n="pr-sub">从免费版开始，按需升级到 Pro。</p>
       </div>
     </section>
 
-    <section class="section section-tight-sm">
+    <section class="section section-tight">
       <div class="container">
-        <div id="changelog-list"></div>
+        <div class="plan-grid">
+          <!-- 免费版 -->
+          <div class="plan-card reveal">
+            <h3 data-i18n="pr-plan-free">免费版</h3>
+            <div class="plan-price"><b data-i18n="pr-price-free">¥0</b><span data-i18n="pr-per-month">/ 月</span></div>
+            <p class="plan-desc" data-i18n="pr-free-desc">适合个人起步，体验核心能力。</p>
+            <ul class="plan-feats">
+              <li data-i18n="pr-f-free-1">任务执行与文档生成</li>
+              <li data-i18n="pr-f-free-2">单设备登录</li>
+              <li data-i18n="pr-f-free-3">社区支持</li>
+            </ul>
+            <a href="download.html" class="btn btn-ghost-dark" data-i18n="pr-cta-free">开始使用</a>
+          </div>
+
+          <!-- Pro -->
+          <div class="plan-card plan-card-pro reveal">
+            <h3 data-i18n="pr-plan-pro">Pro</h3>
+            <div class="plan-period">
+              <button type="button" class="plan-period-btn active" data-period="monthly" data-i18n="pr-monthly">月付</button>
+              <button type="button" class="plan-period-btn" data-period="yearly" data-i18n="pr-yearly">年付</button>
+            </div>
+            <div class="plan-price"><b id="pr-price">-</b><span data-i18n="pr-per-month">/ 月</span></div>
+            <p class="plan-desc" data-i18n="pr-pro-desc">为重度使用者解锁全部能力。</p>
+            <ul class="plan-feats">
+              <li data-i18n="pr-f-pro-1">全部免费版功能</li>
+              <li data-i18n="pr-f-pro-2">多设备同时登录</li>
+              <li data-i18n="pr-f-pro-3">优先响应</li>
+              <li data-i18n="pr-f-pro-4">硬件接入与扩展能力</li>
+              <li data-i18n="pr-f-pro-5">专属支持</li>
+            </ul>
+            <button type="button" id="pr-subscribe" class="btn btn-primary" data-i18n="pr-cta-pro">订阅 Pro</button>
+          </div>
+        </div>
+
+        <div id="pr-order" class="plan-order" hidden>
+          <p class="plan-order-ok" data-i18n="pr-order-ok">订单已创建</p>
+          <p><span data-i18n="pr-order-no">订单号</span> <code id="pr-order-no">-</code></p>
+          <p><span data-i18n="pr-order-amount">金额</span> <b id="pr-order-amount">-</b></p>
+          <p class="auth-hint" data-i18n="pr-order-pending">支付渠道接入中，敬请期待。</p>
+          <button type="button" id="pr-activate" class="btn btn-ghost-dark" hidden data-i18n="pr-order-activate">模拟支付成功（开发模式）</button>
+        </div>
+
+        <p class="auth-hint" style="text-align:center;" data-i18n="pr-note">支付渠道（微信/支付宝）接入后即可在线支付，当前为订阅框架预留阶段。</p>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
     <div class="container">
-            <div class="footer-grid">
+      <div class="footer-grid">
         <div class="footer-intro">
           <div class="footer-brand">
             <img src="assets/img/logo-nav.png" alt="1号员工 logo">
@@ -72,7 +110,8 @@
             <h4 data-i18n="footer-prod">产品</h4>
             <a href="download.html" data-i18n="footer-dl">下载</a>
             <a href="changelog.html" data-i18n="footer-log">更新日志</a>
-            <a href="index.html#capabilities" data-i18n="footer-caps">能力特性</a>
+            <a href="pricing.html" data-i18n="nav-pricing">定价</a>
+            <a href="hardware.html" data-i18n="nav-hardware">物理接入</a>
           </div>
           <div class="footer-col">
             <h4 data-i18n="footer-community">社区</h4>
@@ -82,8 +121,8 @@
           </div>
         </div>
       </div>
-<div class="footer-bottom">
-        <span data-i18n="footer-copy">© 2026 1号员工</span>
+      <div class="footer-bottom">
+        <span><span data-i18n="footer-copy">© 2026 1号员工</span></span>
         <span class="info-blue" data-i18n="footer-host">Digital AI Employee 1# · 托管于 Cloudflare Pages</span>
       </div>
     </div>
@@ -92,5 +131,6 @@
   <script src="assets/i18n/zh.js?v=6"></script>
   <script src="assets/js/main.js?v=3"></script>
   <script src="assets/js/background.js?v=5"></script>
+  <script src="assets/js/pricing.js?v=1"></script>
 </body>
 </html>

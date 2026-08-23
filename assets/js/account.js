@@ -44,6 +44,12 @@
     plan.className = 'status-badge ' + (user.plan === 'pro' ? 'ready' : 'eval');
     document.getElementById('acc-since').textContent = fmtTime(user.createdAt);
 
+    var subPlan = document.getElementById('acc-sub-plan');
+    subPlan.textContent = user.plan === 'pro' ? t('acc-plan-pro', 'Pro') : t('acc-plan-free', '免费版');
+    subPlan.className = 'status-badge ' + (user.plan === 'pro' ? 'ready' : 'eval');
+    document.getElementById('acc-sub-expires').textContent =
+      user.planExpiresAt ? fmtTime(user.planExpiresAt) : t('sub-never', '免费版无到期时间');
+
     document.getElementById('acc-logins').textContent = stats ? String(stats.totalLogins || 0) : '0';
     document.getElementById('acc-devices').textContent = stats ? String(stats.uniqueDevices || 0) : '0';
     document.getElementById('acc-last').textContent = stats ? fmtTime(stats.lastLoginAt) : '-';

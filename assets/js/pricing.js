@@ -1,0 +1,114 @@
+/**
+ * 定价页逻辑（零依赖）
+ * - 从 /api/plans 读取计划价格并渲染
+ * - 月付/年付切换
+ * - 订阅下单：未登录跳登录页；已登录创建订单并展示订单信息
+ * - 开发模式提供"模拟支付成功"按钮（调用 /api/subscription/activate）
+ */
+(function () {
+  'use strict';
+
+  var TOKEN_KEY = 'specai_token';
+  var period = 'monthly';
+  var priceEl = document.getElementById('pr-price');
+  var subscribeBtn = document.getElementById('pr-subscribe');
+  var orderBox = document.getElementById('pr-order');
+  var activateBtn = document.getElementById('pr-activate');
+
+  function t(key, fallback) {
+    var dict = window.I18N || {};
+    return dict[key] || fallback || '';
+  }
+
+  function token() {
+    try { return localStorage.getItem(TOKEN_KEY) || ''; } catch (e) { return ''; }
+  }
+
+  function api(method, path, body) {
+    var opts = { method: method, headers: {} };
+    if (body) {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = JSON.stringify(body);
+    }
+    if (token()) opts.headers['Authorization'] = 'Bearer ' + token();
+    return fetch(path, opts).then(function (r) {
+      return r.json().then(function (d) { return { status: r.status, data: d }; });
+    });
+  }
+
+  function fmtPrice(cents) {
+    return '¥' + (cents / 100).toFixed(2).replace(/\.00$/, '');
+  }
+
+  function renderPrice(plans) {
+    var pro = plans && plans.find ? plans.find(function (p) { return p.id === 'pro'; }) : null;
+    if (!pro) return;
+    var cents = period === 'yearly' ? pro.yearlyCents : pro.monthlyCents;
+    var per = cents / (period === 'yearly' ? 12 : 1);
+    priceEl.textContent = fmtPrice(Math.round(per));
+  }
+
+  document.querySelectorAll('.plan-period-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      period = b.getAttribute('data-period');
+      document.querySelectorAll('.plan-period-btn').forEach(function (x) {
+        x.classList.toggle('active', x === b);
+      });
+      api('GET', '/api/plans').then(function (r) {
+        if (r.status === 200 && r.data.ok) renderPrice(r.data.plans);
+      });
+    });
+  });
+
+  subscribeBtn.addEventListener('click', function () {
+    if (!token()) {
+      window.location.href = 'login.html?next=pricing.html';
+      return;
+    }
+    subscribeBtn.disabled = true;
+    api('POST', '/api/subscription/orders', { plan: 'pro', period: period })
+      .then(function (r) {
+        subscribeBtn.disabled = false;
+        if (r.status === 200 && r.data.ok) {
+          document.getElementById('pr-order-no').textContent = r.data.order.orderNo;
+          document.getElementById('pr-order-amount').textContent =
+            fmtPrice(r.data.order.amountCents) + ' ' + r.data.order.currency;
+          orderBox.hidden = false;
+          if (r.data.devMode) activateBtn.hidden = false;
+        } else {
+          orderBox.hidden = false;
+          document.getElementById('pr-order-no').textContent = '-';
+          document.getElementById('pr-order-amount').textContent = t('pr-order-fail', '下单失败，请稍后再试');
+        }
+      })
+      .catch(function () {
+        subscribeBtn.disabled = false;
+        orderBox.hidden = false;
+        document.getElementById('pr-order-no').textContent = '-';
+        document.getElementById('pr-order-amount').textContent = t('pr-err-net', '网络异常，请稍后再试');
+      });
+  });
+
+  activateBtn.addEventListener('click', function () {
+    var no = document.getElementById('pr-order-no').textContent;
+    if (!no || no === '-') return;
+    activateBtn.disabled = true;
+    api('POST', '/api/subscription/activate', { orderNo: no })
+      .then(function (r) {
+        if (r.status === 200 && r.data.ok) {
+          var ok = document.createElement('p');
+          ok.className = 'auth-msg ok';
+          ok.textContent = t('pr-order-activated', '订阅已激活');
+          orderBox.appendChild(ok);
+          setTimeout(function () { window.location.href = 'account.html'; }, 800);
+        } else {
+          activateBtn.disabled = false;
+        }
+      })
+      .catch(function () { activateBtn.disabled = false; });
+  });
+
+  api('GET', '/api/plans').then(function (r) {
+    if (r.status === 200 && r.data.ok) renderPrice(r.data.plans);
+  });
+})();

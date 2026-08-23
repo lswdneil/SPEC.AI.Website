@@ -11,13 +11,20 @@
  *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
 const LOGIN_FAIL_WINDOW = 600;
 const JWT_TTL = 30 * 24 * 3600; // token 30 天
 const PWD_ITER = 210000;
+
+// 订阅计划（价格为占位，可按需调整；单位：分）
+const PLANS = {
+  free: { id: 'free', monthlyCents: 0, yearlyCents: 0 },
+  pro: { id: 'pro', monthlyCents: 1990, yearlyCents: 19900 }
+};
+const SUBSCRIPTION_DAYS = { monthly: 30, yearly: 365 };
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -332,6 +339,30 @@ async function handleApi(request, env, ctx, path) {
     return handleStats(request, env);
   }
 
+  // 计划列表（公开）
+  if (path === '/api/plans' && method === 'GET') {
+    return handlePlans();
+  }
+
+  // 订阅与订单（需登录）
+  if (path === '/api/subscription' && method === 'GET') {
+    return handleSubscription(request, env);
+  }
+  if (path === '/api/subscription/orders' && method === 'POST') {
+    return handleCreateOrder(request, env);
+  }
+  if (path === '/api/subscription/orders' && method === 'GET') {
+    return handleListOrders(request, env);
+  }
+  if (path === '/api/subscription/activate' && method === 'POST') {
+    return handleActivateOrder(request, env);
+  }
+
+  // 支付回调（预留：微信/支付宝接入后启用）
+  if (path === '/api/payment/notify' && method === 'POST') {
+    return fail('payment_not_configured', 501);
+  }
+
   return fail('not_found', 404);
 }
 
@@ -369,6 +400,111 @@ async function handleStats(request, env) {
       return { method: x.method, ip: x.ip, ua: x.ua, at: x.created_at };
     })
   });
+}
+
+/* ---------- 订阅与订单 ---------- */
+
+function handlePlans() {
+  return ok({
+    plans: Object.keys(PLANS).map(function (k) { return PLANS[k]; }),
+    days: SUBSCRIPTION_DAYS
+  });
+}
+
+async function currentSubscription(env, userId) {
+  const u = await env.DB.prepare('SELECT plan, plan_expires_at FROM users WHERE id = ?').bind(userId).first();
+  if (!u) return null;
+  const hasPlan = u.plan && u.plan !== 'free';
+  const active = hasPlan && u.plan_expires_at && u.plan_expires_at > now();
+  return {
+    plan: active ? u.plan : 'free',
+    expiresAt: active ? u.plan_expires_at : null,
+    status: active ? 'active' : (hasPlan ? 'expired' : 'none')
+  };
+}
+
+async function handleSubscription(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const sub = await currentSubscription(env, user.id);
+  return ok({ subscription: sub });
+}
+
+function genOrderNo() {
+  return 'SA' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 8).toUpperCase();
+}
+
+async function handleCreateOrder(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const planId = b.plan === 'pro' ? 'pro' : 'free';
+  const period = b.period === 'yearly' ? 'yearly' : 'monthly';
+  const plan = PLANS[planId];
+  if (!plan) return fail('invalid_plan');
+  const amount = period === 'yearly' ? plan.yearlyCents : plan.monthlyCents;
+  if (amount <= 0) return fail('plan_free', 400); // 免费版无需下单
+
+  const orderNo = genOrderNo();
+  const t = now();
+  await env.DB.prepare(
+    'INSERT INTO orders (order_no, user_id, plan, amount_cents, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).bind(orderNo, user.id, planId, amount, 'CNY', 'pending', t).run();
+  return ok({
+    order: {
+      orderNo, plan: planId, period, amountCents: amount, currency: 'CNY',
+      status: 'pending', createdAt: t
+    },
+    payment: { provider: null, status: 'pending_integration', message: 'payment_channel_pending' },
+    devMode: env.DEV_MODE === '1'
+  });
+}
+
+async function handleListOrders(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const rows = await env.DB.prepare(
+    'SELECT order_no, plan, amount_cents, currency, status, provider, created_at, paid_at FROM orders WHERE user_id = ? ORDER BY id DESC LIMIT 20'
+  ).bind(user.id).all();
+  return ok({
+    orders: (rows.results || []).map(function (o) {
+      return {
+        orderNo: o.order_no, plan: o.plan, amountCents: o.amount_cents, currency: o.currency,
+        status: o.status, provider: o.provider, createdAt: o.created_at, paidAt: o.paid_at
+      };
+    })
+  });
+}
+
+async function handleActivateOrder(request, env) {
+  // 开发模式专用：模拟支付成功，验证订阅链路（生产环境必须经支付回调）
+  if (env.DEV_MODE !== '1') return fail('forbidden', 403);
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const orderNo = String(b.orderNo || '');
+  const order = await env.DB.prepare(
+    'SELECT id, user_id, plan, status, created_at FROM orders WHERE order_no = ?'
+  ).bind(orderNo).first();
+  if (!order) return fail('order_not_found', 404);
+  if (order.user_id !== user.id) return fail('forbidden', 403);
+  if (order.status === 'paid') return fail('order_already_paid', 409);
+
+  const t = now();
+  const days = SUBSCRIPTION_DAYS[b.period === 'yearly' ? 'yearly' : 'monthly'] || 30;
+  const cur = await env.DB.prepare('SELECT plan_expires_at FROM users WHERE id = ?').bind(user.id).first();
+  const base = (cur && cur.plan_expires_at && cur.plan_expires_at > t) ? cur.plan_expires_at : t;
+  const expiresAt = base + days * 86400;
+
+  await env.DB.prepare('UPDATE orders SET status = ?, paid_at = ? WHERE id = ?').bind('paid', t, order.id).run();
+  await env.DB.prepare('UPDATE users SET plan = ?, plan_expires_at = ?, updated_at = ? WHERE id = ?')
+    .bind(order.plan, expiresAt, t, user.id).run();
+  await env.DB.prepare(
+    'INSERT INTO subscriptions (user_id, plan, status, started_at, expires_at, provider, provider_order, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(user.id, order.plan, 'active', t, expiresAt, 'dev', orderNo, t).run();
+
+  const sub = await currentSubscription(env, user.id);
+  return ok({ subscription: sub, orderNo });
 }
 
 /* ---------- 各接口实现 ---------- */

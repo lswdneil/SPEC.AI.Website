@@ -739,3 +739,84 @@ a { color: inherit; }
 @media (max-width: 560px) {
   .acc-stats { grid-template-columns: 1fr; }
 }
+
+/* ---------- 定价页 ---------- */
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 22px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+.plan-card {
+  background: var(--ink-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 30px 28px;
+  display: flex;
+  flex-direction: column;
+}
+.plan-card-pro { border-color: rgba(194, 91, 67, 0.5); }
+.plan-card h3 { font-size: 19px; font-weight: 800; margin-bottom: 6px; }
+.plan-price { display: flex; align-items: baseline; gap: 6px; margin: 12px 0 4px; }
+.plan-price b { font-size: 34px; font-weight: 900; letter-spacing: -0.01em; }
+.plan-price span { font-size: 13.5px; color: var(--text-muted); }
+.plan-desc { font-size: 13.5px; color: var(--text-secondary); margin-bottom: 18px; }
+.plan-feats { list-style: none; padding: 0; margin: 0 0 22px; flex: 1; }
+.plan-feats li {
+  position: relative;
+  padding-left: 20px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.plan-feats li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.plan-card-pro .plan-feats li::before { background: var(--accent); }
+.plan-period { display: flex; gap: 4px; margin: 4px 0 6px; }
+.plan-period-btn {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12.5px;
+  padding: 5px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.plan-period-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.plan-card .btn { width: 100%; justify-content: center; }
+.plan-order {
+  max-width: 440px;
+  margin: 34px auto 0;
+  background: var(--ink-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  text-align: center;
+  font-size: 14px;
+}
+.plan-order-ok { font-weight: 800; color: var(--text-primary); margin-bottom: 10px; }
+.plan-order code {
+  font-family: var(--mono);
+  color: var(--accent-soft);
+  background: rgba(194, 91, 67, 0.1);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.plan-order .btn { margin-top: 12px; }
+@media (max-width: 720px) {
+  .plan-grid { grid-template-columns: 1fr; }
+}
