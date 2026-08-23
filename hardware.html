@@ -7,7 +7,7 @@
   <meta name="description" content="1号员工 个人AI助理物理接入：AI 耳机、AI 眼镜、AI 吊坠、AI 戒指等随身设备，随时随地与您的数字员工对话。">
   <link rel="icon" type="image/png" href="assets/img/favicon-32.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=2">
 </head>
 <body>
 
@@ -48,7 +48,7 @@
     </section>
 
     <!-- 设备形态 -->
-    <section class="section" style="padding-top: 56px;">
+    <section class="section section-tight">
       <div class="container">
         <div class="section-head reveal">
           <h2 data-i18n="hw-devices-title">支持的智能硬件形态</h2>
@@ -58,35 +58,35 @@
             <div class="os-icon hw-icon" aria-hidden="true">🎧</div>
             <h3 data-i18n="hw-device-1-t">AI 耳机 / 耳塞</h3>
             <div class="os-hint" data-i18n="hw-device-1-h">通话级麦克风 · 随身语音入口</div>
-            <p style="font-size: 14px; color: var(--text-secondary);" data-i18n="hw-device-1-d">主流形态，通过蓝牙接入手机，复用 1号员工 语音通道。</p>
+            <p data-i18n="hw-device-1-d">主流形态，通过蓝牙接入手机，复用 1号员工 语音通道。</p>
             <span class="status-badge eval" data-i18n="hw-status-eval">评估中</span>
           </div>
           <div class="dl-card reveal">
             <div class="os-icon hw-icon" aria-hidden="true">👓</div>
             <h3 data-i18n="hw-device-2-t">AI 眼镜</h3>
             <div class="os-hint" data-i18n="hw-device-2-h">第一视角 · 所见即所问</div>
-            <p style="font-size: 14px; color: var(--text-secondary);" data-i18n="hw-device-2-d">拍照理解 + 语音交互，适合现场记录与实时问答。</p>
+            <p data-i18n="hw-device-2-d">拍照理解 + 语音交互，适合现场记录与实时问答。</p>
             <span class="status-badge soon" data-i18n="hw-status-soon">规划中</span>
           </div>
           <div class="dl-card reveal">
             <div class="os-icon hw-icon" aria-hidden="true">📿</div>
             <h3 data-i18n="hw-device-3-t">AI 吊坠 / 胸针</h3>
             <div class="os-hint" data-i18n="hw-device-3-h">轻量佩戴 · 长续航待机</div>
-            <p style="font-size: 14px; color: var(--text-secondary);" data-i18n="hw-device-3-d">一键语音唤起，适合全天候待命与免提交互。</p>
+            <p data-i18n="hw-device-3-d">一键语音唤起，适合全天候待命与免提交互。</p>
             <span class="status-badge soon" data-i18n="hw-status-soon">规划中</span>
           </div>
           <div class="dl-card reveal">
             <div class="os-icon hw-icon" aria-hidden="true">💍</div>
             <h3 data-i18n="hw-device-4-t">AI 戒指 / 手环</h3>
             <div class="os-hint" data-i18n="hw-device-4-h">隐形佩戴 · 轻交互入口</div>
-            <p style="font-size: 14px; color: var(--text-secondary);" data-i18n="hw-device-4-d">短指令触发与状态感知，配合其他设备组合使用。</p>
+            <p data-i18n="hw-device-4-d">短指令触发与状态感知，配合其他设备组合使用。</p>
             <span class="status-badge eval" data-i18n="hw-status-eval">评估中</span>
           </div>
           <div class="dl-card reveal">
             <div class="os-icon hw-icon" aria-hidden="true">🔊</div>
             <h3 data-i18n="hw-device-5-t">AI 音箱 / 桌宠</h3>
             <div class="os-hint" data-i18n="hw-device-5-h">桌面固定位 · 全时在线</div>
-            <p style="font-size: 14px; color: var(--text-secondary);" data-i18n="hw-device-5-d">办公室与家居的常驻入口，可做团队共享的语音终端。</p>
+            <p data-i18n="hw-device-5-d">办公室与家居的常驻入口，可做团队共享的语音终端。</p>
             <span class="status-badge eval" data-i18n="hw-status-eval">评估中</span>
           </div>
         </div>
@@ -169,7 +169,7 @@
             <span data-i18n="hw-r3-d">对齐主流开源设备协议，低成本接入</span>
             <span class="status-badge soon" data-i18n="hw-status-soon">规划中</span>
           </div>
-          <p style="margin-top: 24px; font-size: 13.5px; color: var(--text-muted);" data-i18n="hw-note">注：以上为能力路线，实际支持进度以发布说明为准。合作接入请通过 GitHub Issues 联系。</p>
+          <p class="hw-note" data-i18n="hw-note">注：以上为能力路线，实际支持进度以发布说明为准。合作接入请通过 GitHub Issues 联系。</p>
         </div>
       </div>
     </section>
@@ -215,12 +215,12 @@
       </div>
       <div class="footer-bottom">
         <span><span data-i18n="footer-copy">© 2026 1号员工</span></span>
-        <span class="info-blue" data-i18n="footer-host">Digital AI Employee 1# · 托管于 Vercel</span>
+        <span class="info-blue" data-i18n="footer-host">Digital AI Employee 1# · 托管于 Cloudflare Pages</span>
       </div>
     </div>
   </footer>
 
-  <script src="assets/i18n/zh.js?v=2"></script>
+  <script src="assets/i18n/zh.js?v=3"></script>
   <script src="assets/js/main.js?v=2"></script>
   <script src="assets/js/background.js?v=5"></script>
 </body>

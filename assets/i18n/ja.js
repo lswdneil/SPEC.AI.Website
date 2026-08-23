@@ -57,10 +57,10 @@ window.I18N = {
   "footer-issues": "問題報告",
   "footer-license": "ライセンス",
   "footer-copy": "© 2026 1号員工",
-  "footer-host": "Digital AI Employee 1# · Vercel でホスト",
+  "footer-host": "Digital AI Employee 1# · Cloudflare Pages でホスト",
 
   "dl-title": "1号員工 をダウンロード",
-  "dl-desc": "インストーラは GitHub Releases で無料配布。macOS / Linux 版は開発中です。",
+  "dl-desc": "国内向け CDN で高速ダウンロード、無料配布。macOS / Linux 版は開発中です。",
   "dl-files-title": "全ファイルとチェックサム",
   "dl-col-name": "ファイル",
   "dl-col-size": "サイズ",

@@ -309,6 +309,8 @@ a { color: inherit; }
 
 /* ---------- 通用区块（全站深色） ---------- */
 .section { padding: 96px 0; }
+.section-tight { padding-top: 56px; }
+.section-tight-sm { padding-top: 40px; }
 .section-head { margin-bottom: 56px; }
 .section-head .kicker {
   font-family: var(--mono); font-size: 13px; letter-spacing: 0.14em;
@@ -431,6 +433,7 @@ a { color: inherit; }
   font-size: 14.5px;
 }
 .hw-route .mono { color: var(--accent-soft); font-size: 12.5px; }
+.hw-note { margin-top: 24px; font-size: 13.5px; color: var(--text-muted); }
 
 /* ---------- 页脚 ---------- */
 .site-footer { background: rgba(16, 18, 22, 0.92); border-top: 1px solid var(--line); color: var(--text-muted); padding: 44px 0 36px; }
@@ -461,6 +464,7 @@ a { color: inherit; }
   font-size: 13px;
 }
 .footer-bottom .info-blue { color: var(--info); }
+.footer-bottom--plain { border-top: none; padding-top: 0; }
 
 /* ---------- 子页面（下载 / 更新日志） ---------- */
 .page-hero { background: rgba(16, 18, 22, 0.88); color: var(--text-primary); padding: 64px 0 56px; border-bottom: 1px solid var(--line-soft); }
@@ -485,6 +489,7 @@ a { color: inherit; }
 }
 .dl-card h3 { font-size: 19px; font-weight: 800; margin-bottom: 4px; }
 .dl-card .os-hint { font-size: 13.5px; color: var(--text-muted); margin-bottom: 20px; }
+.dl-card > p { font-size: 14px; color: var(--text-secondary); }
 .dl-card .btn { justify-content: center; width: 100%; font-size: 15px; padding: 12px 20px; }
 .dl-card .soon {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;

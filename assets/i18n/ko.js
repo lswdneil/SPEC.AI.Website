@@ -57,10 +57,10 @@ window.I18N = {
   "footer-issues": "이슈 제보",
   "footer-license": "라이선스",
   "footer-copy": "© 2026 1호 직원",
-  "footer-host": "Digital AI Employee 1# · Vercel 호스팅",
+  "footer-host": "Digital AI Employee 1# · Cloudflare Pages 호스팅",
 
   "dl-title": "1호 직원 다운로드",
-  "dl-desc": "설치 프로그램은 GitHub Releases에서 무료 제공됩니다. macOS / Linux 버전은 개발 중입니다.",
+  "dl-desc": "국내 CDN 고속 다운로드, 영구 무료. macOS / Linux 버전은 개발 중입니다.",
   "dl-files-title": "전체 파일 및 체크섬",
   "dl-col-name": "파일",
   "dl-col-size": "크기",

@@ -57,10 +57,10 @@ window.I18N = {
   "footer-issues": "Issues",
   "footer-license": "License",
   "footer-copy": "© 2026 Employee #1",
-  "footer-host": "Digital AI Employee 1# · Hosted on Vercel",
+  "footer-host": "Digital AI Employee 1# · Hosted on Cloudflare Pages",
 
   "dl-title": "Download Employee #1",
-  "dl-desc": "Installers are hosted on GitHub Releases, free forever. macOS / Linux versions are under development.",
+  "dl-desc": "Fast domestic downloads via CDN, free forever. macOS / Linux versions are under development.",
   "dl-files-title": "All Files & Checksums",
   "dl-col-name": "File",
   "dl-col-size": "Size",
