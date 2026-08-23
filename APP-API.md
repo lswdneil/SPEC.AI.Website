@@ -140,7 +140,20 @@ POST /api/auth/reset-password # { "email": "user@example.com", "code": "123456",
 
 - 先以 `purpose: "reset"` 发码，再调用 `reset-password`。
 - 仅支持邮箱账号（手机账号无密码，登录走验证码即可）。
-- 成功后旧密码立即失效。响应 `200`：`{ "ok": true, "message": "password_reset" }`
+- 成功后旧密码立即失效，**并撤销该账号全部已签发 token**。响应 `200`：`{ "ok": true, "message": "password_reset" }`
+
+### 2.6 修改密码 / 会话管理 / 绑定 / 注销（均需登录）
+
+```
+POST /api/auth/change-password  # { "oldPassword": "...", "newPassword": "..." }  （仅邮箱账号）
+POST /api/auth/revoke-all       # {} 撤销该账号全部会话（所有已签发 token 立即失效）
+POST /api/auth/bind             # { "method": "email"|"phone", "email"|"phone": "...", "code": "..." } 绑定/换绑第二种身份
+POST /api/auth/deactivate       # { "password": "..." } 邮箱账号；{ "code": "..." } 手机账号（login 用途验证码）→ 注销（软删除）
+```
+
+- 修改密码、重置密码、注销都会使该账号**所有已签发 token 失效**（JWT 内含 token 版本号，服务端版本递增即撤销）。
+- `bind` 前需先 `send-code`（`purpose: "bind"`）向新目标发码验证；新目标已被他人占用返回 409。
+- 注销后账号 `status=disabled`，无法再登录。
 
 ---
 
@@ -398,7 +411,7 @@ POST /api/license/check
 
 - **密码**：客户端仅经 TLS 传输明文密码，服务端 PBKDF2-SHA256（21 万次迭代）哈希存储，客户端不保存、不本地缓存密码。
 - **token 存储**：桌面端建议用 Electron `safeStorage`（系统级加密）持久化 JWT；不要明文落盘。
-- **限流**：登录失败 5 次/10 分钟、发码 5 次/小时/目标，客户端应提示而非无限重试。
+- **限流**：登录失败 5 次/10 分钟、发码 5 次/小时/目标、**注册 10 次/小时/IP**，客户端应提示而非无限重试。
 - **验证码**：一次性、10 分钟过期，服务端强校验，客户端勿自行校验。
 - **设备指纹**：勿用浏览器 UA 等易变值；建议 CPU/主板/系统安装 ID 的组合哈希。
 - **回调安全**（未来支付接入时）：`/api/payment/notify` 必须验签、查重、以服务端为准；客户端仅展示，不直接改订阅状态。
@@ -412,6 +425,7 @@ POST /api/license/check
 | `JWT_SECRET` | Cloudflare 控制台 → 项目 → 设置 → 变量（secret） | **必须**配置，否则每次部署后 token 失效 |
 | `DEV_MODE` | 同上（plain） | 联调 `1`，生产 `0` |
 | `RESEND_API_KEY` / `MAIL_FROM` | 同上（secret） | 可选：验证码邮件通道（未配置时验证码不投递，仅日志） |
+| `SMS_WEBHOOK_URL` | 同上（secret） | 可选：短信通道钩子，服务端向该地址 POST `{phone, code, purpose}` |
 | 短信通道 | 待接入 | 手机验证码生产通道需短信服务商（预留 `sendCode` 扩展点） |
 
 **联调地址**：`https://spec-ai.cn`（上线后）；平台开通前可用 Cloudflare Pages 最新部署 URL（`https://<deployment-id>.spec-ai-website.pages.dev`）。

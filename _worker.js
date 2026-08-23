@@ -41,6 +41,7 @@ const SCHEMA = [
     status TEXT NOT NULL DEFAULT 'active',
     plan TEXT NOT NULL DEFAULT 'free',
     plan_expires_at INTEGER,
+    token_version INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
   )`,
@@ -234,9 +235,12 @@ async function ensureSchema(env) {
   if (schemaReady) return;
   if (!env.DB) throw new Error('D1 binding "DB" is not configured');
   for (const sql of SCHEMA) await env.DB.prepare(sql).run();
-  // 迁移：旧 orders 表补齐 period 列（IF NOT EXISTS 不会更新已存在的表）
+  // 迁移：旧表补齐新列（IF NOT EXISTS 不会更新已存在的表）
   try {
     await env.DB.prepare('ALTER TABLE orders ADD COLUMN period TEXT').run();
+  } catch (e) { /* 列已存在则忽略 */ }
+  try {
+    await env.DB.prepare('ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0').run();
   } catch (e) { /* 列已存在则忽略 */ }
   schemaReady = true;
 }
@@ -260,7 +264,7 @@ async function sendCode(env, target, purpose) {
     'INSERT INTO verify_codes (target, code, purpose, expires_at, used, created_at) VALUES (?, ?, ?, ?, 0, ?)'
   ).bind(target, code, purpose, now() + CODE_TTL, now()).run();
 
-  // 投递：配置了 RESEND_API_KEY 时走邮件通道（注册/登录/重置均可）；否则仅记录日志
+  // 投递：优先邮件（RESEND_API_KEY），其次短信钩子（SMS_WEBHOOK_URL）；均未配置则仅记录日志
   if (env.RESEND_API_KEY && validEmail(target)) {
     const subject = purpose === 'register'
       ? '1号员工 注册验证码'
@@ -279,6 +283,18 @@ async function sendCode(env, target, purpose) {
       return { delivered: true };
     } catch (e) {
       console.error('[auth] 邮件发送失败', String(e));
+    }
+  }
+  if (env.SMS_WEBHOOK_URL && validPhone(target)) {
+    try {
+      await fetch(env.SMS_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: target, code, purpose })
+      });
+      return { delivered: true };
+    } catch (e) {
+      console.error('[auth] 短信发送失败', String(e));
     }
   }
   console.warn(`[auth] 验证码未投递（未配置邮件/短信通道）target=${target} code=${code}`);
@@ -307,6 +323,16 @@ async function loginBlocked(env, ip, target) {
   return r && r.n >= LOGIN_FAIL_LIMIT;
 }
 
+const REGISTER_IP_LIMIT = 10;   // 每 IP 每小时注册上限
+
+async function registerLimited(env, ip) {
+  const since = now() - 3600;
+  const r = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM login_logs WHERE method = ? AND ip = ? AND created_at > ?'
+  ).bind('register', ip, since).first();
+  return r && r.n >= REGISTER_IP_LIMIT;
+}
+
 async function recordLogin(env, userId, method, target, ip, ua, success) {
   await env.DB.prepare(
     'INSERT INTO login_logs (user_id, method, target, ip, ua, success, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -321,8 +347,13 @@ async function requireUser(request, env) {
   if (!m) return null;
   const payload = await verifyJwt(m[1], env);
   if (!payload) return null;
-  return env.DB.prepare('SELECT id, email, phone, status, plan, plan_expires_at, created_at FROM users WHERE id = ?')
-    .bind(payload.sub).first();
+  const user = await env.DB.prepare(
+    'SELECT id, email, phone, status, plan, plan_expires_at, token_version, pass_hash, created_at FROM users WHERE id = ?'
+  ).bind(payload.sub).first();
+  if (!user) return null;
+  // token 版本校验：改密/重置/注销后旧 token 一律失效
+  if (payload.tv !== (user.token_version || 0)) return null;
+  return user;
 }
 
 /* ---------- 接口路由 ---------- */
@@ -351,6 +382,18 @@ async function handleApi(request, env, ctx, path) {
   }
   if (path === '/api/auth/reset-password' && method === 'POST') {
     return handleResetPassword(request, env);
+  }
+  if (path === '/api/auth/change-password' && method === 'POST') {
+    return handleChangePassword(request, env);
+  }
+  if (path === '/api/auth/revoke-all' && method === 'POST') {
+    return handleRevokeAll(request, env);
+  }
+  if (path === '/api/auth/deactivate' && method === 'POST') {
+    return handleDeactivate(request, env);
+  }
+  if (path === '/api/auth/bind' && method === 'POST') {
+    return handleBind(request, env);
   }
 
   // 账户信息（需登录）
@@ -418,19 +461,20 @@ async function handleStats(request, env) {
   const user = await requireUser(request, env);
   if (!user) return fail('unauthorized', 401);
   const r = await env.DB.prepare(
-    'SELECT COUNT(*) AS n, MAX(created_at) AS last, COUNT(DISTINCT ua) AS devices FROM login_logs WHERE user_id = ? AND success = 1'
-  ).bind(user.id).first();
+    'SELECT COUNT(*) AS n, MAX(created_at) AS last FROM login_logs WHERE user_id = ? AND success = 1 AND method != ?'
+  ).bind(user.id, 'register').first();
+  const dev = await env.DB.prepare('SELECT COUNT(*) AS n FROM devices WHERE user_id = ?').bind(user.id).first();
   const methods = await env.DB.prepare(
-    'SELECT method, COUNT(*) AS n FROM login_logs WHERE user_id = ? AND success = 1 GROUP BY method ORDER BY n DESC'
-  ).bind(user.id).all();
+    'SELECT method, COUNT(*) AS n FROM login_logs WHERE user_id = ? AND success = 1 AND method != ? GROUP BY method ORDER BY n DESC'
+  ).bind(user.id, 'register').all();
   const recent = await env.DB.prepare(
-    'SELECT method, ip, ua, created_at FROM login_logs WHERE user_id = ? ORDER BY id DESC LIMIT 10'
-  ).bind(user.id).all();
+    'SELECT method, ip, ua, created_at FROM login_logs WHERE user_id = ? AND method != ? ORDER BY id DESC LIMIT 10'
+  ).bind(user.id, 'register').all();
   return ok({
     stats: {
       totalLogins: r ? (r.n || 0) : 0,
       lastLoginAt: r ? r.last : null,
-      uniqueDevices: r ? (r.devices || 0) : 0,
+      uniqueDevices: dev ? (dev.n || 0) : 0,
       methods: (methods.results || []).map(function (m) { return { method: m.method, count: m.n }; })
     },
     recentLogins: (recent.results || []).map(function (x) {
@@ -592,8 +636,18 @@ async function handleRegisterDevice(request, env) {
     await env.DB.prepare('UPDATE devices SET name = ?, last_seen_at = ? WHERE user_id = ? AND device_id = ?')
       .bind(name, t, user.id, deviceId).run();
   } else {
-    await env.DB.prepare('INSERT INTO devices (user_id, device_id, name, last_seen_at, created_at) VALUES (?, ?, ?, ?, ?)')
-      .bind(user.id, deviceId, name, t, t).run();
+    try {
+      await env.DB.prepare('INSERT INTO devices (user_id, device_id, name, last_seen_at, created_at) VALUES (?, ?, ?, ?, ?)')
+        .bind(user.id, deviceId, name, t, t).run();
+    } catch (e) {
+      // 并发注册同一设备 → 唯一约束冲突，按已存在处理（更新时间戳）
+      if (/UNIQUE/i.test(String(e.message || e))) {
+        await env.DB.prepare('UPDATE devices SET name = ?, last_seen_at = ? WHERE user_id = ? AND device_id = ?')
+          .bind(name, t, user.id, deviceId).run();
+      } else {
+        throw e;
+      }
+    }
   }
   const list = await env.DB.prepare(
     'SELECT device_id, name, last_seen_at, created_at FROM devices WHERE user_id = ? ORDER BY id ASC'
@@ -626,7 +680,7 @@ async function handleHealth(env) {
 async function handleSendCode(request, env) {
   const b = await readBody(request);
   const target = String(b.target || '').trim().toLowerCase();
-  const purpose = (b.purpose === 'login' || b.purpose === 'reset') ? b.purpose : 'register';
+  const purpose = (b.purpose === 'login' || b.purpose === 'reset' || b.purpose === 'bind') ? b.purpose : 'register';
   if (!validEmail(target) && !validPhone(target)) return fail('invalid_target');
   const r = await sendCode(env, target, purpose);
   if (r.limited) return fail('too_many_requests', 429);
@@ -649,9 +703,78 @@ async function handleResetPassword(request, env) {
   const ver = await consumeCode(env, email, code, 'reset');
   if (ver !== 'ok') return fail(ver);
   const passHash = await hashPassword(newPassword);
-  await env.DB.prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?')
+  // 重置密码同时撤销所有旧 token
+  await env.DB.prepare('UPDATE users SET pass_hash = ?, token_version = token_version + 1, updated_at = ? WHERE id = ?')
     .bind(passHash, now(), user.id).run();
   return ok({ message: 'password_reset' });
+}
+
+async function handleChangePassword(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const oldPw = b.oldPassword || '';
+  const newPw = b.newPassword || '';
+  if (!validPassword(newPw)) return fail('invalid_password');
+  if (!user.pass_hash) return fail('invalid_method'); // 手机账号无密码
+  const row = await env.DB.prepare('SELECT pass_hash FROM users WHERE id = ?').bind(user.id).first();
+  if (!(await verifyPassword(oldPw, row.pass_hash))) return fail('bad_credentials', 401);
+  const passHash = await hashPassword(newPw);
+  await env.DB.prepare('UPDATE users SET pass_hash = ?, token_version = token_version + 1, updated_at = ? WHERE id = ?')
+    .bind(passHash, now(), user.id).run();
+  return ok({ message: 'password_changed' });
+}
+
+async function handleRevokeAll(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  await env.DB.prepare('UPDATE users SET token_version = token_version + 1, updated_at = ? WHERE id = ?')
+    .bind(now(), user.id).run();
+  return ok({ message: 'sessions_revoked' });
+}
+
+async function handleDeactivate(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const row = await env.DB.prepare('SELECT pass_hash FROM users WHERE id = ?').bind(user.id).first();
+  if (row.pass_hash) {
+    if (!(await verifyPassword(String(b.password || ''), row.pass_hash))) return fail('bad_credentials', 401);
+  } else {
+    const code = String(b.code || '');
+    if (!code) return fail('code_required');
+    const ver = await consumeCode(env, user.phone, code, 'login');
+    if (ver !== 'ok') return fail(ver);
+  }
+  await env.DB.prepare('UPDATE users SET status = ?, token_version = token_version + 1, updated_at = ? WHERE id = ?')
+    .bind('disabled', now(), user.id).run();
+  return ok({ message: 'account_deactivated' });
+}
+
+async function handleBind(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const method = b.method === 'phone' ? 'phone' : 'email';
+  const target = method === 'phone' ? String(b.phone || '').trim() : String(b.email || '').trim().toLowerCase();
+  const code = String(b.code || '');
+  if (method === 'email' && !validEmail(target)) return fail('invalid_email');
+  if (method === 'phone' && !validPhone(target)) return fail('invalid_phone');
+  if (!code) return fail('code_required');
+  const ver = await consumeCode(env, target, code, 'bind');
+  if (ver !== 'ok') return fail(ver);
+  const exist = await env.DB.prepare(
+    method === 'email' ? 'SELECT id FROM users WHERE email = ?' : 'SELECT id FROM users WHERE phone = ?'
+  ).bind(target).first();
+  if (exist && exist.id !== user.id) return fail('already_registered', 409);
+  const t = now();
+  if (method === 'email') {
+    await env.DB.prepare('UPDATE users SET email = ?, updated_at = ? WHERE id = ?').bind(target, t, user.id).run();
+  } else {
+    await env.DB.prepare('UPDATE users SET phone = ?, updated_at = ? WHERE id = ?').bind(target, t, user.id).run();
+  }
+  const fresh = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(user.id).first();
+  return ok({ user: publicUser(fresh) });
 }
 
 async function handleRegister(request, env, ip, ua) {
@@ -672,6 +795,8 @@ async function handleRegister(request, env, ip, ua) {
   const ver = await consumeCode(env, target, code, 'register');
   if (ver !== 'ok') return fail(ver);
 
+  if (await registerLimited(env, ip)) return fail('too_many_requests', 429);
+
   // 查重
   const exist = await env.DB.prepare(
     method === 'email'
@@ -682,14 +807,21 @@ async function handleRegister(request, env, ip, ua) {
 
   const passHash = method === 'email' ? await hashPassword(password) : null;
   const t = now();
-  const ins = await env.DB.prepare(
-    'INSERT INTO users (email, phone, pass_hash, status, plan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).bind(method === 'email' ? target : null, method === 'phone' ? target : null, passHash, 'active', 'free', t, t).run();
+  let ins;
+  try {
+    ins = await env.DB.prepare(
+      'INSERT INTO users (email, phone, pass_hash, status, plan, token_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?)'
+    ).bind(method === 'email' ? target : null, method === 'phone' ? target : null, passHash, 'active', 'free', t, t).run();
+  } catch (e) {
+    // 并发注册触发唯一约束 → 归一到 409
+    if (/UNIQUE/i.test(String(e.message || e))) return fail('already_registered', 409);
+    throw e;
+  }
 
   const userId = ins.meta.last_row_id;
   const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
-  await recordLogin(env, userId, method, target, ip, ua, true);
-  const token = await signJwt({ sub: userId, plan: 'free', iat: now(), exp: now() + JWT_TTL }, env);
+  await recordLogin(env, userId, 'register', target, ip, ua, true);
+  const token = await signJwt({ sub: userId, plan: 'free', tv: 0, iat: now(), exp: now() + JWT_TTL }, env);
   return ok({ token, user: publicUser(user) });
 }
 
@@ -731,7 +863,7 @@ async function handleLogin(request, env, ip, ua) {
   if (!user) return fail('account_not_registered', 404);
   if (user.status !== 'active') return fail('account_disabled', 403);
   await recordLogin(env, user.id, method, target, ip, ua, true);
-  const token = await signJwt({ sub: user.id, plan: user.plan, iat: now(), exp: now() + JWT_TTL }, env);
+  const token = await signJwt({ sub: user.id, plan: user.plan, tv: user.token_version || 0, iat: now(), exp: now() + JWT_TTL }, env);
   return ok({ token, user: publicUser(user) });
 }
 

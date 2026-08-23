@@ -55,10 +55,13 @@ async function main() {
   const worker = mod.default;
   const env = { DB: makeDb(), ASSETS: { fetch: async (req) => new Response('static:' + new URL(req.url).pathname) }, JWT_SECRET: 'unit-test-secret', DEV_MODE: '1' };
 
+  // 模拟不同用户来自不同出口 IP（避免限流聚合误伤）
+  let testIp = '203.0.113.10';
+
   async function call(path, body, headers = {}) {
     const res = await worker.fetch(new Request('https://spec-ai.cn' + path, {
       method: body ? 'POST' : 'GET',
-      headers: { 'Content-Type': 'application/json', ...headers },
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': testIp, ...headers },
       body: body ? JSON.stringify(body) : undefined
     }), env, {});
     let data = null;
@@ -80,7 +83,7 @@ async function main() {
   r = await call('/api/auth/register', { method: 'email', email: 'user@example.com', password: 'password123', code });
   assert('register 成功', r.status === 200 && r.data.ok && r.data.token, JSON.stringify(r.data));
   assert('register 返回 email', r.data.user && r.data.user.email === 'user@example.com');
-  const token = r.data.token;
+  let token = r.data.token;
 
   r = await call('/api/auth/send-code', { target: 'user@example.com', purpose: 'register' });
   const code2 = r.data.devCode;
@@ -112,6 +115,7 @@ async function main() {
   assert('stats 无 token 401', r.status === 401, JSON.stringify(r.data));
 
   console.log('— 手机验证码注册/登录');
+  testIp = '203.0.113.20';
   r = await call('/api/auth/send-code', { target: '13800138000', purpose: 'register' });
   const phoneCode = r.data.devCode;
   assert('手机发码', typeof phoneCode === 'string', String(r.data));
@@ -193,11 +197,13 @@ async function main() {
 
   console.log('— 回归修复验证');
   // Bug1: 验证码正确但号码未注册 → 404 account_not_registered（而非 account_disabled）
+  testIp = '203.0.113.21';
   r = await call('/api/auth/send-code', { target: '13900139000', purpose: 'login' });
   const unregCode = r.data.devCode;
   assert('未注册号码发码成功', typeof unregCode === 'string', String(r.data));
   r = await call('/api/auth/login', { method: 'phone', phone: '13900139000', code: unregCode });
   assert('未注册手机号登录 404', r.status === 404 && r.data.error === 'account_not_registered', JSON.stringify(r.data));
+  testIp = '203.0.113.10';
 
   // Bug3: period 以订单存储为准（激活时忽略客户端传入 period）
   r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
@@ -221,6 +227,58 @@ async function main() {
   assert('新密码登录成功', r.status === 200 && r.data.ok, JSON.stringify(r.data));
   r = await call('/api/auth/reset-password', { email: 'ghost@example.com', code: '000000', newPassword: 'newpassword456' });
   assert('重置不存在账号 404', r.status === 404, JSON.stringify(r.data));
+
+  console.log('— 账户安全（改密/撤销/注销/绑定）');
+  // 回归段重置过密码（newpassword456），重新登录获取有效 token
+  testIp = '203.0.113.10';
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'newpassword456' });
+  assert('安全段前重新登录', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  token = r.data.token;
+  // 手机账号无密码
+  r = await call('/api/auth/change-password', { oldPassword: 'x', newPassword: 'newpass123' }, { Authorization: 'Bearer ' + phoneToken });
+  assert('手机账号改密被拒', r.status === 400 && r.data.error === 'invalid_method', JSON.stringify(r.data));
+
+  // 邮箱用户改密（reset 后密码为 newpassword456）
+  r = await call('/api/auth/change-password', { oldPassword: 'wrongpass', newPassword: 'changedpass1' }, { Authorization: 'Bearer ' + token });
+  assert('改密旧密码错误 401', r.status === 401, JSON.stringify(r.data));
+  r = await call('/api/auth/change-password', { oldPassword: 'newpassword456', newPassword: 'changedpass1' }, { Authorization: 'Bearer ' + token });
+  assert('改密成功', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await call('/api/me', null, { Authorization: 'Bearer ' + token });
+  assert('改密后旧 token 失效', r.status === 401, JSON.stringify(r.data));
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'changedpass1' });
+  assert('新密码重新登录', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  const newToken = r.data.token;
+
+  // 撤销所有会话
+  r = await call('/api/auth/revoke-all', {}, { Authorization: 'Bearer ' + newToken });
+  assert('撤销所有会话', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await call('/api/me', null, { Authorization: 'Bearer ' + newToken });
+  assert('撤销后 token 失效', r.status === 401, JSON.stringify(r.data));
+
+  // 绑定手机（purpose=bind）
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'changedpass1' });
+  const tok2 = r.data.token;
+  r = await call('/api/auth/send-code', { target: '13700137000', purpose: 'bind' });
+  const bindCode = r.data.devCode;
+  assert('绑定发码成功', typeof bindCode === 'string', String(r.data));
+  r = await call('/api/auth/bind', { method: 'phone', phone: '13700137000', code: bindCode }, { Authorization: 'Bearer ' + tok2 });
+  assert('绑定手机成功', r.status === 200 && r.data.ok && r.data.user.phone === '13700137000', JSON.stringify(r.data));
+  r = await call('/api/auth/send-code', { target: '13700137000', purpose: 'login' });
+  const bindLoginCode = r.data.devCode;
+  r = await call('/api/auth/login', { method: 'phone', phone: '13700137000', code: bindLoginCode });
+  assert('新绑定手机可登录', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+
+  // 注销（软删除）
+  r = await call('/api/auth/deactivate', { password: 'wrongpass' }, { Authorization: 'Bearer ' + tok2 });
+  assert('注销需正确密码', r.status === 401, JSON.stringify(r.data));
+  r = await call('/api/auth/deactivate', { password: 'changedpass1' }, { Authorization: 'Bearer ' + tok2 });
+  assert('注销成功', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'changedpass1' });
+  assert('注销后登录 403', r.status === 403, JSON.stringify(r.data));
+
+  // 统计不含注册标记
+  r = await call('/api/stats', null, { Authorization: 'Bearer ' + phoneToken });
+  assert('stats 不含 register 方法', r.status === 200 && !(r.data.stats.methods || []).some(function (m) { return m.method === 'register'; }), JSON.stringify(r.data.stats.methods));
 
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});
