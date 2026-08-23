@@ -28,6 +28,7 @@
 | `bad_credentials` | 401 | 邮箱或密码错误 |
 | `account_not_registered` | 404 | 手机号未注册（验证码正确但无账号） |
 | `account_not_found` | 404 | 重置密码时邮箱不存在 |
+| `invalid_method` | 400 | 操作与账号类型不符（如手机账号调修改密码接口） |
 | `unauthorized` | 401 | 未登录或 token 无效/过期 |
 | `too_many_attempts` / `too_many_requests` | 429 | 触发限流（10 分钟 5 次失败 / 每小时 5 次发码） |
 | `account_disabled` | 403 | 账号被禁用 |
@@ -94,7 +95,7 @@ POST /api/auth/register
 {
   "ok": true,
   "token": "<JWT>",
-  "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "free", "planExpiresAt": null, "createdAt": 1756000000 }
+  "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "free", "planExpiresAt": null, "hasPassword": true, "createdAt": 1756000000 }
 }
 ```
 
@@ -154,6 +155,7 @@ POST /api/auth/deactivate       # { "password": "..." } 邮箱账号；{ "code":
 - 修改密码、重置密码、注销都会使该账号**所有已签发 token 失效**（JWT 内含 token 版本号，服务端版本递增即撤销）。
 - `bind` 前需先 `send-code`（`purpose: "bind"`）向新目标发码验证；新目标已被他人占用返回 409。
 - 注销后账号 `status=disabled`，无法再登录。
+- `user.hasPassword`：邮箱账号为 `true`、纯手机账号为 `false`。App 端据此决定展示「修改密码」还是「验证码」流程（手机账号调 `change-password` 会返回 `invalid_method`(400)）。
 
 ---
 
