@@ -272,5 +272,27 @@ window.I18N = {
   "sec-deactivate-confirm": "削除を確定",
   "sec-msg-deactivated": "アカウントを削除しました",
   "sec-phone-code": "認証コード",
-  "sec-send-code": "コード取得"
+  "sec-send-code": "コード取得",
+
+  /* 料金とフッター */
+  "footer-pricing": "料金",
+  "footer-price-personal": "個人向け",
+  "footer-price-enterprise": "法人向け",
+  "footer-contact-sales": "営業に問い合わせ",
+  "ent-title": "法人プラン",
+  "ent-sub": "チームと企業向けに、プライベートで安全・カスタマイズ可能な展開。",
+  "ent-f1-t": "プライベート展開",
+  "ent-f1-d": "自社サーバーで展開、データを完全に管理。",
+  "ent-f2-t": "シングルサインオン",
+  "ent-f2-d": "既存の認証基盤と連携。",
+  "ent-f3-t": "専用サポート",
+  "ent-f3-d": "導入・サポート専任チーム。",
+  "ent-f4-t": "契約と請求書",
+  "ent-f4-d": "正式契約、法人請求と請求書対応。",
+  "ent-f5-t": "カスタム連携",
+  "ent-f5-d": "業務フローと既存システムの連携をカスタマイズ。",
+  "ent-pricing-title": "料金体系",
+  "ent-pricing-desc": "席数と展開規模に応じた見積もり、年間契約と法人調達に対応。",
+  "ent-mail-btn": "メールで問い合わせ",
+  "ent-gh-btn": "GitHub で問い合わせ"
 };

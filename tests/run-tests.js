@@ -53,7 +53,7 @@ function test(name, fn) {
 }
 
 /* ---------- 1. HTML 结构 ---------- */
-const HTML_FILES = ['index.html', 'download.html', 'changelog.html', 'hardware.html', '404.html', 'login.html', 'account.html', 'pricing.html'];
+const HTML_FILES = ['index.html', 'download.html', 'changelog.html', 'hardware.html', '404.html', 'login.html', 'account.html', 'pricing.html', 'enterprise.html'];
 const VOID_TAGS = new Set([
   'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
   'link', 'meta', 'param', 'source', 'track', 'wbr',
@@ -67,6 +67,7 @@ const REQUIRED_IDS = {
   'login.html': ['auth-form', 'auth-submit', 'auth-send-code', 'site-nav', 'bg-canvas'],
   'account.html': ['acc-body', 'acc-logout', 'sec-change-btn', 'sec-revoke', 'sec-deactivate', 'site-nav', 'bg-canvas'],
   'pricing.html': ['pr-subscribe', 'pr-order', 'site-nav', 'bg-canvas'],
+  'enterprise.html': ['site-nav', 'bg-canvas'],
 };
 
 test('HTML 文件存在且标签平衡', () => {

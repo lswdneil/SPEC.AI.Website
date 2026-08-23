@@ -275,5 +275,27 @@ window.I18N = {
   "sec-deactivate-confirm": "Confirm deletion",
   "sec-msg-deactivated": "Account deleted",
   "sec-phone-code": "Verification code",
-  "sec-send-code": "Get code"
+  "sec-send-code": "Get code",
+
+  /* Pricing & footer */
+  "footer-pricing": "Pricing",
+  "footer-price-personal": "Personal",
+  "footer-price-enterprise": "Enterprise",
+  "footer-contact-sales": "Contact sales",
+  "ent-title": "Enterprise Plan",
+  "ent-sub": "Private, secure and customizable deployment of Employee #1 for teams and businesses.",
+  "ent-f1-t": "Private deployment",
+  "ent-f1-d": "Run on your own servers with full data control.",
+  "ent-f2-t": "SSO",
+  "ent-f2-d": "Integrate with your existing identity provider.",
+  "ent-f3-t": "Dedicated support",
+  "ent-f3-d": "Implementation and support team with fast response.",
+  "ent-f4-t": "Contract & invoicing",
+  "ent-f4-d": "Formal contracts, corporate billing and invoices.",
+  "ent-f5-t": "Custom integration",
+  "ent-f5-d": "Tailored workflows and business system integration.",
+  "ent-pricing-title": "Pricing model",
+  "ent-pricing-desc": "Quoted by seats and deployment scale, annual contracts and corporate procurement supported.",
+  "ent-mail-btn": "Email sales",
+  "ent-gh-btn": "Ask on GitHub"
 };

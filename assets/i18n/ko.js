@@ -272,5 +272,27 @@ window.I18N = {
   "sec-deactivate-confirm": "삭제 확인",
   "sec-msg-deactivated": "계정이 삭제되었습니다",
   "sec-phone-code": "인증 코드",
-  "sec-send-code": "코드 받기"
+  "sec-send-code": "코드 받기",
+
+  /* 요금제 및 푸터 */
+  "footer-pricing": "요금제",
+  "footer-price-personal": "개인 사용자",
+  "footer-price-enterprise": "기업 사용자",
+  "footer-contact-sales": "영업 담당자 문의",
+  "ent-title": "기업 플랜",
+  "ent-sub": "팀과 기업을 위한 프라이빗하고 안전하며 맞춤 가능한 배포. ",
+  "ent-f1-t": "프라이빗 배포",
+  "ent-f1-d": "자체 서버에서 실행, 데이터 완전 관리.",
+  "ent-f2-t": "SSO",
+  "ent-f2-d": "기존 인증 체계와 연동.",
+  "ent-f3-t": "전담 지원",
+  "ent-f3-d": "전담 구현·지원 팀, 빠른 대응.",
+  "ent-f4-t": "계약 및 세금계산서",
+  "ent-f4-d": "정식 계약, 법인 결제와 세금계산서 지원.",
+  "ent-f5-t": "맞춤 연동",
+  "ent-f5-d": "업무 흐름과 시스템 연동을 맞춤화.",
+  "ent-pricing-title": "요금 체계",
+  "ent-pricing-desc": "좌석 수와 배포 규모에 따른 견적, 연간 계약 및 법인 조달 지원.",
+  "ent-mail-btn": "이메일 문의",
+  "ent-gh-btn": "GitHub 문의"
 };

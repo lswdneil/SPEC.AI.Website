@@ -284,5 +284,27 @@ window.I18N = {
   "sec-deactivate-confirm": "确认注销",
   "sec-msg-deactivated": "账号已注销",
   "sec-phone-code": "验证码",
-  "sec-send-code": "获取验证码"
+  "sec-send-code": "获取验证码",
+
+  /* 定价与页脚 */
+  "footer-pricing": "定价",
+  "footer-price-personal": "个人用户",
+  "footer-price-enterprise": "企业用户",
+  "footer-contact-sales": "联系专员",
+  "ent-title": "企业方案",
+  "ent-sub": "为团队与企业提供私有化、安全、可定制的部署方案。",
+  "ent-f1-t": "私有化部署",
+  "ent-f1-d": "数据部署在您自己的服务器，完全掌控。",
+  "ent-f2-t": "单点登录 SSO",
+  "ent-f2-d": "对接企业既有身份体系，统一账号管理。",
+  "ent-f3-t": "专属客服",
+  "ent-f3-d": "专属实施与支持团队，快速响应。",
+  "ent-f4-t": "合同与发票",
+  "ent-f4-d": "正式合同、对公付款与发票支持。",
+  "ent-f5-t": "定制集成",
+  "ent-f5-d": "按需定制工作流与业务系统对接。",
+  "ent-pricing-title": "定价模式",
+  "ent-pricing-desc": "按席位与部署规模报价，支持年度合同与对公采购。",
+  "ent-mail-btn": "邮件联系专员",
+  "ent-gh-btn": "GitHub 咨询"
 };
