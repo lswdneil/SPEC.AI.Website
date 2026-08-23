@@ -8,7 +8,7 @@
 ## 待办项（网站端）
 
 - [x] **替换占位符**：安装包直链/SHA256/大小 ✅（specai-1.1.3-win-x64.exe）；homepage 已替换为 spec-ai.cn ✅
-- [ ] **域名 spec-ai.cn 上线收尾**：✅ 注册局审核 ✅ 实名（clientHold 已解除）✅ Cloudflare zone 已激活 ✅ NS 已切（merlin/reza）✅ Pages 已绑定 `spec-ai.cn` + `www`（均 active）✅ 部署成功（2559050b）→ ⏳ **账号级 Pages 服务未开通**：API 显示部署/域名全 active，但账号下 0 个 Workers 脚本（pages-worker--18173810-production 未创建），所有 URL 返回空 404；新账号 pages.dev 官方最长 48h（8/22 12:00 UTC 起算）→ 若到 8/24 12:00 UTC 仍 404，带此诊断到 support.cloudflare.com 开工单
+- [ ] **域名 spec-ai.cn 上线收尾**：✅ 注册局审核 ✅ 实名（clientHold 已解除）✅ Cloudflare zone 已激活 ✅ NS 已切（merlin/reza）✅ Pages 已绑定 `spec-ai.cn` + `www`（均 active）✅ 部署成功（c2a678e6）→ ⏳ **账号级 Pages 服务未开通**：账号 0 个 Workers 脚本（pages-worker--* 未创建），所有 URL 返回空 404（新项目 spec-ai-site 同样失败，证明是账号级故障）；已双通道求助：① 工单已提交（AI 助手确认后端问题，已追加新证据要求人工升级）② 社区帖已提交（Cloudflare Pages 版块，标题 "New account: Pages worker script never created - every URL empty 404"，**待版主审核**，通过后公开）→ 持续监测，激活后验证 HTTPS
 - [ ] **Cloudflare 维护窗口**：2026-08-29（周六）09:00-10:00 UTC 升级核心数据库，期间 Zone 配置变更（DNS/SSL/Pages 绑定）可能短暂失败，避开该时段操作
 - [x] **阿里云 OSS 国内下载加速**：✅ 已上线 — Windows 安装包主下载已切换为 OSS 直链（国内加速），GitHub Release 保留为海外备用；后续 macOS/Linux 发布时需同步上传 OSS 并更新 `releases.json`
 - [ ] **pages.dev 激活**：周期检查后台运行中（30分钟/次），激活后自动通知；激活后先以 pages.dev 上线，域名生效后绑定 spec-ai.cn
