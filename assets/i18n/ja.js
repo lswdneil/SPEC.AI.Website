@@ -241,5 +241,10 @@ window.I18N = {
   "sub-title": "サブスクリプション",
   "sub-expires": "有効期限",
   "sub-upgrade": "プランを見る",
-  "sub-never": "無料版に期限はありません"
+  "sub-never": "無料版に期限はありません",
+
+  /* デバイス連携 */
+  "lic-devices-title": "連携デバイス",
+  "lic-devices-empty": "デバイスは未連携です",
+  "lic-devices-limit": "デバイス上限"
 };

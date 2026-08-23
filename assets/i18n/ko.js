@@ -241,5 +241,10 @@ window.I18N = {
   "sub-title": "내 구독",
   "sub-expires": "만료일",
   "sub-upgrade": "요금제 보기",
-  "sub-never": "무료는 만료가 없습니다"
+  "sub-never": "무료는 만료가 없습니다",
+
+  /* 기기 연동 */
+  "lic-devices-title": "연동 기기",
+  "lic-devices-empty": "연동된 기기가 없습니다",
+  "lic-devices-limit": "기기 상한"
 };

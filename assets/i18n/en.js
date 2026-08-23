@@ -244,5 +244,10 @@ window.I18N = {
   "sub-title": "My Subscription",
   "sub-expires": "Expires",
   "sub-upgrade": "View plans",
-  "sub-never": "No expiry on Free"
+  "sub-never": "No expiry on Free",
+
+  /* Devices */
+  "lic-devices-title": "Bound Devices",
+  "lic-devices-empty": "No devices bound",
+  "lic-devices-limit": "Device limit"
 };

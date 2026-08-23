@@ -253,5 +253,10 @@ window.I18N = {
   "sub-title": "我的订阅",
   "sub-expires": "到期时间",
   "sub-upgrade": "查看方案",
-  "sub-never": "免费版无到期时间"
+  "sub-never": "免费版无到期时间",
+
+  /* 绑定设备 */
+  "lic-devices-title": "绑定设备",
+  "lic-devices-empty": "未绑定设备",
+  "lic-devices-limit": "设备上限"
 };

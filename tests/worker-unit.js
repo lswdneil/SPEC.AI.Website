@@ -121,6 +121,7 @@ async function main() {
   const loginCode = r.data.devCode;
   r = await call('/api/auth/login', { method: 'phone', phone: '13800138000', code: loginCode });
   assert('手机登录成功', r.status === 200 && r.data.ok && r.data.token, JSON.stringify(r.data));
+  const phoneToken = r.data.token;
 
   console.log('— 验证码一次性');
   r = await call('/api/auth/login', { method: 'phone', phone: '13800138000', code: loginCode });
@@ -158,6 +159,37 @@ async function main() {
 
   r = await call('/api/payment/notify', { orderNo: orderNo });
   assert('支付回调预留 501', r.status === 501 && r.data.error === 'payment_not_configured', JSON.stringify(r.data));
+
+  console.log('— 许可与设备');
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + token });
+  assert('license 检查（pro）', r.status === 200 && r.data.license.plan === 'pro', JSON.stringify(r.data));
+  assert('pro 权益（设备上限 3）', r.data.license.features.maxDevices === 3, JSON.stringify(r.data.license.features));
+
+  r = await call('/api/license/register-device', { deviceId: 'dev-a', name: 'PC' }, { Authorization: 'Bearer ' + token });
+  assert('注册设备 1', r.status === 200 && r.data.allowed && r.data.devices.length === 1, JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'dev-b', name: 'Laptop' }, { Authorization: 'Bearer ' + token });
+  assert('注册设备 2', r.status === 200 && r.data.devices.length === 2, JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'dev-c', name: 'Mac' }, { Authorization: 'Bearer ' + token });
+  assert('注册设备 3', r.status === 200 && r.data.devices.length === 3, JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'dev-d', name: 'Phone' }, { Authorization: 'Bearer ' + token });
+  assert('超限被拒（pro 3 台）', r.status === 403 && r.data.error === 'device_limit', JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'dev-a', name: 'PC-2' }, { Authorization: 'Bearer ' + token });
+  assert('重复设备更新不计数', r.status === 200 && r.data.devices.length === 3, JSON.stringify(r.data));
+
+  r = await call('/api/license/remove-device', { deviceId: 'dev-a' }, { Authorization: 'Bearer ' + token });
+  assert('移除设备', r.status === 200 && r.data.removed === 'dev-a', JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'dev-d', name: 'Phone' }, { Authorization: 'Bearer ' + token });
+  assert('移除后可再绑定', r.status === 200 && r.data.devices.length === 3, JSON.stringify(r.data));
+
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
+  assert('free 用户 license', r.status === 200 && r.data.license.plan === 'free', JSON.stringify(r.data));
+  assert('free 权益（设备上限 1）', r.data.license.features.maxDevices === 1 && r.data.license.features.hardwareAccess === false, JSON.stringify(r.data.license.features));
+  r = await call('/api/license/register-device', { deviceId: 'f1' }, { Authorization: 'Bearer ' + phoneToken });
+  assert('free 绑定 1 台', r.status === 200 && r.data.allowed, JSON.stringify(r.data));
+  r = await call('/api/license/register-device', { deviceId: 'f2' }, { Authorization: 'Bearer ' + phoneToken });
+  assert('free 第 2 台被拒', r.status === 403 && r.data.error === 'device_limit', JSON.stringify(r.data));
+  r = await call('/api/license/check', {});
+  assert('license 未登录 401', r.status === 401, JSON.stringify(r.data));
 
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});

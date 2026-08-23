@@ -11,7 +11,7 @@
  *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.4.0';
+const VERSION = '0.5.0';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -25,6 +25,12 @@ const PLANS = {
   pro: { id: 'pro', monthlyCents: 1990, yearlyCents: 19900 }
 };
 const SUBSCRIPTION_DAYS = { monthly: 30, yearly: 365 };
+
+// 各计划的权益矩阵（App 端据此解锁功能）
+const FEATURES = {
+  free: { maxParallelTasks: 1, maxDevices: 1, hardwareAccess: false, prioritySupport: false, storageGb: 2 },
+  pro: { maxParallelTasks: 5, maxDevices: 3, hardwareAccess: true, prioritySupport: true, storageGb: 100 }
+};
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -80,6 +86,15 @@ const SCHEMA = [
     expires_at INTEGER NOT NULL,
     used INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS devices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    device_id TEXT NOT NULL,
+    name TEXT,
+    last_seen_at INTEGER,
+    created_at INTEGER NOT NULL,
+    UNIQUE(user_id, device_id)
   )`
 ];
 
@@ -363,6 +378,17 @@ async function handleApi(request, env, ctx, path) {
     return fail('payment_not_configured', 501);
   }
 
+  // 许可与设备（App 端校验订阅权益，需登录）
+  if (path === '/api/license/check' && method === 'POST') {
+    return handleLicenseCheck(request, env);
+  }
+  if (path === '/api/license/register-device' && method === 'POST') {
+    return handleRegisterDevice(request, env);
+  }
+  if (path === '/api/license/remove-device' && method === 'POST') {
+    return handleRemoveDevice(request, env);
+  }
+
   return fail('not_found', 404);
 }
 
@@ -505,6 +531,72 @@ async function handleActivateOrder(request, env) {
 
   const sub = await currentSubscription(env, user.id);
   return ok({ subscription: sub, orderNo });
+}
+
+/* ---------- 许可与设备 ---------- */
+
+function planFeatures(plan) {
+  return FEATURES[plan === 'pro' ? 'pro' : 'free'];
+}
+
+function deviceList(rows) {
+  return (rows || []).map(function (d) {
+    return { deviceId: d.device_id, name: d.name, lastSeenAt: d.last_seen_at, createdAt: d.created_at };
+  });
+}
+
+async function handleLicenseCheck(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const sub = await currentSubscription(env, user.id);
+  const devices = await env.DB.prepare(
+    'SELECT device_id, name, last_seen_at, created_at FROM devices WHERE user_id = ? ORDER BY id ASC'
+  ).bind(user.id).all();
+  return ok({
+    license: {
+      plan: sub.plan,
+      status: sub.status,
+      expiresAt: sub.expiresAt,
+      features: planFeatures(sub.plan)
+    },
+    devices: deviceList(devices.results)
+  });
+}
+
+async function handleRegisterDevice(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const deviceId = String(b.deviceId || '').trim();
+  const name = String(b.name || '').slice(0, 64);
+  if (!deviceId || deviceId.length > 128) return fail('invalid_device');
+  const sub = await currentSubscription(env, user.id);
+  const maxDevices = planFeatures(sub.plan).maxDevices;
+  const devices = await env.DB.prepare('SELECT device_id FROM devices WHERE user_id = ?').bind(user.id).all();
+  const exists = devices.results.some(function (d) { return d.device_id === deviceId; });
+  if (!exists && devices.results.length >= maxDevices) return fail('device_limit', 403, { max: maxDevices });
+  const t = now();
+  if (exists) {
+    await env.DB.prepare('UPDATE devices SET name = ?, last_seen_at = ? WHERE user_id = ? AND device_id = ?')
+      .bind(name, t, user.id, deviceId).run();
+  } else {
+    await env.DB.prepare('INSERT INTO devices (user_id, device_id, name, last_seen_at, created_at) VALUES (?, ?, ?, ?, ?)')
+      .bind(user.id, deviceId, name, t, t).run();
+  }
+  const list = await env.DB.prepare(
+    'SELECT device_id, name, last_seen_at, created_at FROM devices WHERE user_id = ? ORDER BY id ASC'
+  ).bind(user.id).all();
+  return ok({ allowed: true, max: maxDevices, devices: deviceList(list.results) });
+}
+
+async function handleRemoveDevice(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const b = await readBody(request);
+  const deviceId = String(b.deviceId || '');
+  if (!deviceId || deviceId.length > 128) return fail('invalid_device');
+  await env.DB.prepare('DELETE FROM devices WHERE user_id = ? AND device_id = ?').bind(user.id, deviceId).run();
+  return ok({ removed: deviceId });
 }
 
 /* ---------- 各接口实现 ---------- */
