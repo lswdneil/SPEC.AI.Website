@@ -87,6 +87,7 @@
       try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
       applyStaticI18n();
       initAuthNav();
+      alignNavButtons();
       rerenderDynamic();
       cb && cb();
     });
@@ -337,6 +338,18 @@
       link.href = "login.html";
       link.textContent = t("nav-login", "登录");
     }
+  }
+
+  /* ---------- 导航按钮等宽对齐（GitHub/物理接入/登录/语言 取最大宽度统一） ---------- */
+  function alignNavButtons() {
+    var items = $all(".nav-gh, .lang-select");
+    if (!items.length) return;
+    var max = 0;
+    items.forEach(function (n) {
+      var w = n.offsetWidth;
+      if (w > max) max = w;
+    });
+    items.forEach(function (n) { n.style.width = max + "px"; });
   }
 
   /* ---------- 场景 Tab ---------- */

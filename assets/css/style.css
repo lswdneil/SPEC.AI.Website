@@ -151,11 +151,12 @@ a { color: inherit; }
 }
 .nav-links a:hover { color: var(--text-primary); }
 .nav-gh {
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   color: var(--text-primary) !important;
   border: 1px solid var(--line); border-radius: 999px;
   padding: 0 16px; font-size: 13.5px; line-height: 1;
   height: 34px;
+  white-space: nowrap;
   transition: border-color 0.18s ease, background 0.18s ease;
 }
 .nav-gh:hover { border-color: var(--accent); background: rgba(194, 91, 67, 0.12); }
@@ -193,7 +194,8 @@ a { color: inherit; }
   background: var(--ink-3);
   border: 1px solid var(--line);
   border-radius: 999px;
-  padding: 0 34px 0 16px;
+  padding: 0 16px;
+  text-align: center;
   height: 34px;
   cursor: pointer;
   appearance: none;
