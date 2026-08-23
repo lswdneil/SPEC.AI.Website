@@ -183,5 +183,27 @@ window.I18N = {
   "auth-err-limited": "試行回数が多すぎます。後でもう一度お試しください",
   "auth-err-disabled": "アカウントは無効です。サポートにお問い合わせください",
   "auth-err-net": "ネットワークエラーです。後でもう一度お試しください",
-  "auth-err-target-empty": "メールまたは電話番号を入力してください"
+  "auth-err-target-empty": "メールまたは電話番号を入力してください",
+
+  /* アカウントセンター */
+  "acc-title": "アカウントセンター",
+  "acc-sub": "アカウント情報、利用統計、ログイン履歴を確認します。",
+  "acc-loading": "読み込み中…",
+  "acc-profile": "プロフィール",
+  "acc-email": "メール",
+  "acc-phone": "電話番号",
+  "acc-plan": "プラン",
+  "acc-member-since": "登録日",
+  "acc-stats-title": "利用統計",
+  "acc-stats-logins": "ログイン回数",
+  "acc-stats-devices": "デバイス数",
+  "acc-stats-last": "最終ログイン",
+  "acc-history-title": "ログイン履歴",
+  "acc-history-empty": "記録なし",
+  "acc-method-email": "メール",
+  "acc-method-phone": "電話",
+  "acc-plan-free": "無料版",
+  "acc-plan-pro": "Pro",
+  "acc-logout": "ログアウト",
+  "acc-err-net": "ネットワークエラーです。後でもう一度お試しください"
 };

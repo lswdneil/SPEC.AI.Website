@@ -102,6 +102,15 @@ async function main() {
   r = await call('/api/me', null, { Authorization: 'Bearer invalid.token.here' });
   assert('伪造 token 401', r.status === 401, JSON.stringify(r.data));
 
+  console.log('— 统计');
+  r = await call('/api/stats', null, { Authorization: 'Bearer ' + token });
+  assert('stats 需登录 200', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  assert('stats 登录次数 >= 1', r.data.stats && r.data.stats.totalLogins >= 1, JSON.stringify(r.data.stats));
+  assert('stats 最近登录时间存在', r.data.stats && !!r.data.stats.lastLoginAt, JSON.stringify(r.data.stats));
+  assert('stats 最近登录记录非空', Array.isArray(r.data.recentLogins) && r.data.recentLogins.length >= 1, JSON.stringify(r.data.recentLogins));
+  r = await call('/api/stats');
+  assert('stats 无 token 401', r.status === 401, JSON.stringify(r.data));
+
   console.log('— 手机验证码注册/登录');
   r = await call('/api/auth/send-code', { target: '13800138000', purpose: 'register' });
   const phoneCode = r.data.devCode;

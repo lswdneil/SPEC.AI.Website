@@ -186,5 +186,27 @@ window.I18N = {
   "auth-err-limited": "Too many attempts, try again later",
   "auth-err-disabled": "Account disabled, please contact support",
   "auth-err-net": "Network error, try again later",
-  "auth-err-target-empty": "Enter your email or phone first"
+  "auth-err-target-empty": "Enter your email or phone first",
+
+  /* Account center */
+  "acc-title": "Account Center",
+  "acc-sub": "View your account info, usage stats and login history.",
+  "acc-loading": "Loading…",
+  "acc-profile": "Profile",
+  "acc-email": "Email",
+  "acc-phone": "Phone",
+  "acc-plan": "Plan",
+  "acc-member-since": "Member since",
+  "acc-stats-title": "Usage Stats",
+  "acc-stats-logins": "Logins",
+  "acc-stats-devices": "Devices",
+  "acc-stats-last": "Last login",
+  "acc-history-title": "Login History",
+  "acc-history-empty": "No records yet",
+  "acc-method-email": "Email",
+  "acc-method-phone": "Phone",
+  "acc-plan-free": "Free",
+  "acc-plan-pro": "Pro",
+  "acc-logout": "Log out",
+  "acc-err-net": "Network error, try again later"
 };

@@ -183,5 +183,27 @@ window.I18N = {
   "auth-err-limited": "시도 횟수가 너무 많습니다. 나중에 다시 시도하세요",
   "auth-err-disabled": "계정이 비활성화되었습니다. 지원팀에 문의하세요",
   "auth-err-net": "네트워크 오류. 나중에 다시 시도하세요",
-  "auth-err-target-empty": "이메일 또는 전화번호를 먼저 입력하세요"
+  "auth-err-target-empty": "이메일 또는 전화번호를 먼저 입력하세요",
+
+  /* 계정 센터 */
+  "acc-title": "계정 센터",
+  "acc-sub": "계정 정보, 사용 통계, 로그인 기록을 확인합니다.",
+  "acc-loading": "불러오는 중…",
+  "acc-profile": "프로필",
+  "acc-email": "이메일",
+  "acc-phone": "전화번호",
+  "acc-plan": "요금제",
+  "acc-member-since": "가입일",
+  "acc-stats-title": "사용 통계",
+  "acc-stats-logins": "로그인 횟수",
+  "acc-stats-devices": "기기 수",
+  "acc-stats-last": "최근 로그인",
+  "acc-history-title": "로그인 기록",
+  "acc-history-empty": "기록 없음",
+  "acc-method-email": "이메일",
+  "acc-method-phone": "전화",
+  "acc-plan-free": "무료",
+  "acc-plan-pro": "Pro",
+  "acc-logout": "로그아웃",
+  "acc-err-net": "네트워크 오류. 나중에 다시 시도하세요"
 };

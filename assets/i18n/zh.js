@@ -195,5 +195,27 @@ window.I18N = {
   "auth-err-limited": "尝试次数过多，请稍后再试",
   "auth-err-disabled": "账号已被禁用，请联系支持",
   "auth-err-net": "网络异常，请稍后再试",
-  "auth-err-target-empty": "请先填写邮箱或手机号"
+  "auth-err-target-empty": "请先填写邮箱或手机号",
+
+  /* 账户中心 */
+  "acc-title": "账户中心",
+  "acc-sub": "查看账号信息、使用统计与登录记录。",
+  "acc-loading": "加载中…",
+  "acc-profile": "账号资料",
+  "acc-email": "邮箱",
+  "acc-phone": "手机号",
+  "acc-plan": "订阅计划",
+  "acc-member-since": "注册时间",
+  "acc-stats-title": "使用统计",
+  "acc-stats-logins": "登录次数",
+  "acc-stats-devices": "设备数",
+  "acc-stats-last": "最近登录",
+  "acc-history-title": "登录记录",
+  "acc-history-empty": "暂无记录",
+  "acc-method-email": "邮箱",
+  "acc-method-phone": "手机",
+  "acc-plan-free": "免费版",
+  "acc-plan-pro": "Pro",
+  "acc-logout": "退出登录",
+  "acc-err-net": "网络异常，请稍后再试"
 };

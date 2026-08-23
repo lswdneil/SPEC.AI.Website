@@ -11,7 +11,7 @@
  *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.2.0';
+const VERSION = '0.3.0';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -327,6 +327,11 @@ async function handleApi(request, env, ctx, path) {
     return ok({ user: publicUser(user) });
   }
 
+  // 使用统计（需登录）
+  if (path === '/api/stats' && method === 'GET') {
+    return handleStats(request, env);
+  }
+
   return fail('not_found', 404);
 }
 
@@ -339,6 +344,31 @@ function publicUser(u) {
     planExpiresAt: u.plan_expires_at || null,
     createdAt: u.created_at
   };
+}
+
+async function handleStats(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+  const r = await env.DB.prepare(
+    'SELECT COUNT(*) AS n, MAX(created_at) AS last, COUNT(DISTINCT ua) AS devices FROM login_logs WHERE user_id = ? AND success = 1'
+  ).bind(user.id).first();
+  const methods = await env.DB.prepare(
+    'SELECT method, COUNT(*) AS n FROM login_logs WHERE user_id = ? AND success = 1 GROUP BY method ORDER BY n DESC'
+  ).bind(user.id).all();
+  const recent = await env.DB.prepare(
+    'SELECT method, ip, ua, created_at FROM login_logs WHERE user_id = ? ORDER BY id DESC LIMIT 10'
+  ).bind(user.id).all();
+  return ok({
+    stats: {
+      totalLogins: r ? (r.n || 0) : 0,
+      lastLoginAt: r ? r.last : null,
+      uniqueDevices: r ? (r.devices || 0) : 0,
+      methods: (methods.results || []).map(function (m) { return { method: m.method, count: m.n }; })
+    },
+    recentLogins: (recent.results || []).map(function (x) {
+      return { method: x.method, ip: x.ip, ua: x.ua, at: x.created_at };
+    })
+  });
 }
 
 /* ---------- 各接口实现 ---------- */
