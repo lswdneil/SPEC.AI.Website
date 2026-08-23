@@ -11,7 +11,7 @@ production deployment automatically.
 import os, sys, json, hashlib, uuid, urllib.request, urllib.error
 
 ACC = "418811a8d8a2571eab803093f07685e0"
-PROJ = "spec-ai-website"
+PROJ = os.environ.get("CLOUDFLARE_PAGES_PROJECT", "spec-ai-website")
 URL = f"https://api.cloudflare.com/client/v4/accounts/{ACC}/pages/projects/{PROJ}/deployments"
 
 EXCLUDE_DIRS = {".git", "node_modules", "tests", "site-preview", "scripts", ".github", "__pycache__"}
