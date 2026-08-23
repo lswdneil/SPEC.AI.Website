@@ -249,5 +249,14 @@ window.I18N = {
   /* Devices */
   "lic-devices-title": "Bound Devices",
   "lic-devices-empty": "No devices bound",
-  "lic-devices-limit": "Device limit"
+  "lic-devices-limit": "Device limit",
+
+  /* Password reset */
+  "auth-forgot": "Forgot password",
+  "auth-back-login": "Back to log in",
+  "auth-submit-reset": "Reset password",
+  "auth-msg-reset-ok": "Password reset, please log in",
+  "auth-err-not-found": "Account not found",
+  "auth-new-password": "New password, at least 8 characters",
+  "auth-password-ph": "At least 8 characters"
 };

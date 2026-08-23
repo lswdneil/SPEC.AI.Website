@@ -246,5 +246,14 @@ window.I18N = {
   /* 기기 연동 */
   "lic-devices-title": "연동 기기",
   "lic-devices-empty": "연동된 기기가 없습니다",
-  "lic-devices-limit": "기기 상한"
+  "lic-devices-limit": "기기 상한",
+
+  /* 비밀번호 재설정 */
+  "auth-forgot": "비밀번호 찾기",
+  "auth-back-login": "로그인으로 돌아가기",
+  "auth-submit-reset": "비밀번호 재설정",
+  "auth-msg-reset-ok": "비밀번호가 재설정되었습니다. 로그인하세요",
+  "auth-err-not-found": "계정을 찾을 수 없습니다",
+  "auth-new-password": "새 비밀번호 (8자 이상)",
+  "auth-password-ph": "8자 이상"
 };

@@ -60,6 +60,7 @@ const SCHEMA = [
     order_no TEXT UNIQUE NOT NULL,
     user_id INTEGER NOT NULL,
     plan TEXT NOT NULL,
+    period TEXT,
     amount_cents INTEGER NOT NULL,
     currency TEXT NOT NULL DEFAULT 'CNY',
     status TEXT NOT NULL DEFAULT 'pending',
@@ -233,6 +234,10 @@ async function ensureSchema(env) {
   if (schemaReady) return;
   if (!env.DB) throw new Error('D1 binding "DB" is not configured');
   for (const sql of SCHEMA) await env.DB.prepare(sql).run();
+  // 迁移：旧 orders 表补齐 period 列（IF NOT EXISTS 不会更新已存在的表）
+  try {
+    await env.DB.prepare('ALTER TABLE orders ADD COLUMN period TEXT').run();
+  } catch (e) { /* 列已存在则忽略 */ }
   schemaReady = true;
 }
 
@@ -255,8 +260,11 @@ async function sendCode(env, target, purpose) {
     'INSERT INTO verify_codes (target, code, purpose, expires_at, used, created_at) VALUES (?, ?, ?, ?, 0, ?)'
   ).bind(target, code, purpose, now() + CODE_TTL, now()).run();
 
-  // 投递：配置了 RESEND_API_KEY 时走邮件通道；否则仅记录日志
-  if (env.RESEND_API_KEY && purpose === 'register' && validEmail(target)) {
+  // 投递：配置了 RESEND_API_KEY 时走邮件通道（注册/登录/重置均可）；否则仅记录日志
+  if (env.RESEND_API_KEY && validEmail(target)) {
+    const subject = purpose === 'register'
+      ? '1号员工 注册验证码'
+      : (purpose === 'reset' ? '1号员工 密码重置验证码' : '1号员工 登录验证码');
     try {
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -264,8 +272,8 @@ async function sendCode(env, target, purpose) {
         body: JSON.stringify({
           from: env.MAIL_FROM || '1号员工 <noreply@spec-ai.cn>',
           to: [target],
-          subject: '1号员工 注册验证码',
-          text: `您的注册验证码是 ${code}，10 分钟内有效。`
+          subject,
+          text: `您的验证码是 ${code}，10 分钟内有效。`
         })
       });
       return { delivered: true };
@@ -340,6 +348,9 @@ async function handleApi(request, env, ctx, path) {
   }
   if (path === '/api/auth/login' && method === 'POST') {
     return handleLogin(request, env, ip, ua);
+  }
+  if (path === '/api/auth/reset-password' && method === 'POST') {
+    return handleResetPassword(request, env);
   }
 
   // 账户信息（需登录）
@@ -474,8 +485,8 @@ async function handleCreateOrder(request, env) {
   const orderNo = genOrderNo();
   const t = now();
   await env.DB.prepare(
-    'INSERT INTO orders (order_no, user_id, plan, amount_cents, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).bind(orderNo, user.id, planId, amount, 'CNY', 'pending', t).run();
+    'INSERT INTO orders (order_no, user_id, plan, period, amount_cents, currency, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).bind(orderNo, user.id, planId, period, amount, 'CNY', 'pending', t).run();
   return ok({
     order: {
       orderNo, plan: planId, period, amountCents: amount, currency: 'CNY',
@@ -510,14 +521,15 @@ async function handleActivateOrder(request, env) {
   const b = await readBody(request);
   const orderNo = String(b.orderNo || '');
   const order = await env.DB.prepare(
-    'SELECT id, user_id, plan, status, created_at FROM orders WHERE order_no = ?'
+    'SELECT id, user_id, plan, period, status, created_at FROM orders WHERE order_no = ?'
   ).bind(orderNo).first();
   if (!order) return fail('order_not_found', 404);
   if (order.user_id !== user.id) return fail('forbidden', 403);
   if (order.status === 'paid') return fail('order_already_paid', 409);
 
   const t = now();
-  const days = SUBSCRIPTION_DAYS[b.period === 'yearly' ? 'yearly' : 'monthly'] || 30;
+  // 以订单内持久化的 period 为准，不接受客户端传入
+  const days = SUBSCRIPTION_DAYS[order.period === 'yearly' ? 'yearly' : 'monthly'] || 30;
   const cur = await env.DB.prepare('SELECT plan_expires_at FROM users WHERE id = ?').bind(user.id).first();
   const base = (cur && cur.plan_expires_at && cur.plan_expires_at > t) ? cur.plan_expires_at : t;
   const expiresAt = base + days * 86400;
@@ -614,13 +626,32 @@ async function handleHealth(env) {
 async function handleSendCode(request, env) {
   const b = await readBody(request);
   const target = String(b.target || '').trim().toLowerCase();
-  const purpose = b.purpose === 'login' ? 'login' : 'register';
+  const purpose = (b.purpose === 'login' || b.purpose === 'reset') ? b.purpose : 'register';
   if (!validEmail(target) && !validPhone(target)) return fail('invalid_target');
   const r = await sendCode(env, target, purpose);
   if (r.limited) return fail('too_many_requests', 429);
   const resp = { delivered: !!r.delivered };
   if (env.DEV_MODE === '1' && r.devCode) resp.devCode = r.devCode;
   return ok(resp);
+}
+
+async function handleResetPassword(request, env) {
+  await ensureSchema(env);
+  const b = await readBody(request);
+  const email = String(b.email || '').trim().toLowerCase();
+  const code = String(b.code || '');
+  const newPassword = b.newPassword || '';
+  if (!validEmail(email)) return fail('invalid_email');
+  if (!validPassword(newPassword)) return fail('invalid_password');
+  if (!code) return fail('code_required');
+  const user = await env.DB.prepare('SELECT id, pass_hash FROM users WHERE email = ?').bind(email).first();
+  if (!user) return fail('account_not_found', 404);
+  const ver = await consumeCode(env, email, code, 'reset');
+  if (ver !== 'ok') return fail(ver);
+  const passHash = await hashPassword(newPassword);
+  await env.DB.prepare('UPDATE users SET pass_hash = ?, updated_at = ? WHERE id = ?')
+    .bind(passHash, now(), user.id).run();
+  return ok({ message: 'password_reset' });
 }
 
 async function handleRegister(request, env, ip, ua) {
@@ -697,7 +728,8 @@ async function handleLogin(request, env, ip, ua) {
     return fail('bad_credentials', 401);
   }
 
-  if (!user || user.status !== 'active') return fail('account_disabled', 403);
+  if (!user) return fail('account_not_registered', 404);
+  if (user.status !== 'active') return fail('account_disabled', 403);
   await recordLogin(env, user.id, method, target, ip, ua, true);
   const token = await signJwt({ sub: user.id, plan: user.plan, iat: now(), exp: now() + JWT_TTL }, env);
   return ok({ token, user: publicUser(user) });

@@ -246,5 +246,14 @@ window.I18N = {
   /* デバイス連携 */
   "lic-devices-title": "連携デバイス",
   "lic-devices-empty": "デバイスは未連携です",
-  "lic-devices-limit": "デバイス上限"
+  "lic-devices-limit": "デバイス上限",
+
+  /* パスワード再設定 */
+  "auth-forgot": "パスワードを忘れた",
+  "auth-back-login": "ログインに戻る",
+  "auth-submit-reset": "パスワードを再設定",
+  "auth-msg-reset-ok": "パスワードを再設定しました。ログインしてください",
+  "auth-err-not-found": "アカウントが見つかりません",
+  "auth-new-password": "新しいパスワード（8 文字以上）",
+  "auth-password-ph": "8 文字以上"
 };

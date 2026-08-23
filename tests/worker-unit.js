@@ -191,6 +191,37 @@ async function main() {
   r = await call('/api/license/check', {});
   assert('license 未登录 401', r.status === 401, JSON.stringify(r.data));
 
+  console.log('— 回归修复验证');
+  // Bug1: 验证码正确但号码未注册 → 404 account_not_registered（而非 account_disabled）
+  r = await call('/api/auth/send-code', { target: '13900139000', purpose: 'login' });
+  const unregCode = r.data.devCode;
+  assert('未注册号码发码成功', typeof unregCode === 'string', String(r.data));
+  r = await call('/api/auth/login', { method: 'phone', phone: '13900139000', code: unregCode });
+  assert('未注册手机号登录 404', r.status === 404 && r.data.error === 'account_not_registered', JSON.stringify(r.data));
+
+  // Bug3: period 以订单存储为准（激活时忽略客户端传入 period）
+  r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
+  const beforeExp = r.data.subscription.expiresAt;
+  assert('订阅有到期时间', !!beforeExp, JSON.stringify(r.data));
+  r = await call('/api/subscription/orders', { plan: 'pro', period: 'yearly' }, { Authorization: 'Bearer ' + token });
+  const yearlyOrder = r.data.order.orderNo;
+  r = await call('/api/subscription/activate', { orderNo: yearlyOrder, period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  const afterExp = r.data.subscription.expiresAt;
+  assert('年付订单 +365 天（客户端 period 无效）', afterExp - beforeExp === 365 * 86400, `before=${beforeExp} after=${afterExp}`);
+
+  // Bug4: 密码重置流程
+  r = await call('/api/auth/send-code', { target: 'user@example.com', purpose: 'reset' });
+  const resetCode = r.data.devCode;
+  assert('重置发码成功', typeof resetCode === 'string', String(r.data));
+  r = await call('/api/auth/reset-password', { email: 'user@example.com', code: resetCode, newPassword: 'newpassword456' });
+  assert('重置密码成功', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'password123' });
+  assert('旧密码失效', r.status === 401, JSON.stringify(r.data));
+  r = await call('/api/auth/login', { method: 'email', email: 'user@example.com', password: 'newpassword456' });
+  assert('新密码登录成功', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await call('/api/auth/reset-password', { email: 'ghost@example.com', code: '000000', newPassword: 'newpassword456' });
+  assert('重置不存在账号 404', r.status === 404, JSON.stringify(r.data));
+
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});
   const sbody = await sres.text();

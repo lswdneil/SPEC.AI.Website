@@ -258,5 +258,14 @@ window.I18N = {
   /* 绑定设备 */
   "lic-devices-title": "绑定设备",
   "lic-devices-empty": "未绑定设备",
-  "lic-devices-limit": "设备上限"
+  "lic-devices-limit": "设备上限",
+
+  /* 密码重置 */
+  "auth-forgot": "忘记密码",
+  "auth-back-login": "返回登录",
+  "auth-submit-reset": "重置密码",
+  "auth-msg-reset-ok": "密码已重置，请登录",
+  "auth-err-not-found": "账号不存在",
+  "auth-new-password": "新密码，至少 8 位",
+  "auth-password-ph": "至少 8 位"
 };

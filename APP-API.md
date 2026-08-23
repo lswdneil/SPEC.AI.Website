@@ -26,6 +26,8 @@
 | `invalid_target` | 400 | 目标（邮箱/手机）不合法 |
 | `already_registered` | 409 | 账号已注册 |
 | `bad_credentials` | 401 | 邮箱或密码错误 |
+| `account_not_registered` | 404 | 手机号未注册（验证码正确但无账号） |
+| `account_not_found` | 404 | 重置密码时邮箱不存在 |
 | `unauthorized` | 401 | 未登录或 token 无效/过期 |
 | `too_many_attempts` / `too_many_requests` | 429 | 触发限流（10 分钟 5 次失败 / 每小时 5 次发码） |
 | `account_disabled` | 403 | 账号被禁用 |
@@ -128,6 +130,17 @@ Authorization: Bearer <token>
 ```
 
 > 用途：启动时校验 token 是否有效；401 即失效。
+
+### 2.5 重置密码（邮箱账号）
+
+```
+POST /api/auth/send-code      # { "target": "user@example.com", "purpose": "reset" }
+POST /api/auth/reset-password # { "email": "user@example.com", "code": "123456", "newPassword": "newpassword456" }
+```
+
+- 先以 `purpose: "reset"` 发码，再调用 `reset-password`。
+- 仅支持邮箱账号（手机账号无密码，登录走验证码即可）。
+- 成功后旧密码立即失效。响应 `200`：`{ "ok": true, "message": "password_reset" }`
 
 ---
 

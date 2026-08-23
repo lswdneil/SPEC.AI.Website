@@ -698,6 +698,24 @@ a { color: inherit; }
   color: var(--text-muted);
   line-height: 1.6;
 }
+.auth-link-row {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+.auth-link {
+  border: none;
+  background: transparent;
+  color: var(--accent-soft);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 2px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-link:hover { color: var(--accent); }
+.auth-method:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* ---------- 账户中心 ---------- */
 .acc-block { margin-bottom: 26px; }
