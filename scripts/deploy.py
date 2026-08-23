@@ -14,7 +14,7 @@ ACC = "418811a8d8a2571eab803093f07685e0"
 PROJ = os.environ.get("CLOUDFLARE_PAGES_PROJECT", "spec-ai-website")
 URL = f"https://api.cloudflare.com/client/v4/accounts/{ACC}/pages/projects/{PROJ}/deployments"
 
-EXCLUDE_DIRS = {".git", "node_modules", "tests", "site-preview", "scripts", ".github", "__pycache__"}
+EXCLUDE_DIRS = {".git", "node_modules", "tests", "site-preview", "scripts", "docs", ".github", "__pycache__"}
 EXCLUDE_FILES = {"README.md", "REMINDERS.md", "APP-API.md", "BRAND-DESIGN-SPEC.md", "LICENSE", "package.json", "package-lock.json", ".gitignore", "vercel.json"}
 
 
