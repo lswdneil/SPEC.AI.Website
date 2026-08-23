@@ -1,15 +1,24 @@
 /**
  * 1号员工 官网后端（Cloudflare Pages advanced mode worker）
  *
- * - /api/*     业务接口（注册/登录/统计/订阅/许可，分阶段实现）
+ * - /api/*     业务接口：健康检查、注册/登录/验证码、账户信息、统计、订阅、许可
  * - 其余路径    回退到静态资源（env.ASSETS），现有页面完全不受影响
  * - 依赖        D1 数据库绑定（变量名 DB）+ Web Crypto（零外部依赖）
  *
- * 安全约定：密码 PBKDF2-SHA256 哈希、JWT(HMAC-SHA256) 鉴权、
- * 登录限流、验证码一次性使用。均在后续阶段实现。
+ * 安全约定：密码 PBKDF2-SHA256（21 万次迭代）哈希、JWT(HMAC-SHA256) 鉴权、
+ * 验证码一次性使用（10 分钟过期）、登录/发码限流。
+ * 环境变量：JWT_SECRET（必配，生产）、DEV_MODE（开发调试返回验证码）、
+ *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.1.0';
+const VERSION = '0.2.0';
+const CODE_TTL = 600;          // 验证码有效期 10 分钟
+const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
+const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
+const LOGIN_FAIL_WINDOW = 600;
+const JWT_TTL = 30 * 24 * 3600; // token 30 天
+const PWD_ITER = 210000;
+
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,6 +59,7 @@ const SCHEMA = [
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER,
     method TEXT,
+    target TEXT,
     ip TEXT,
     ua TEXT,
     success INTEGER NOT NULL DEFAULT 0,
@@ -67,6 +77,11 @@ const SCHEMA = [
 ];
 
 /* ---------- 基础工具 ---------- */
+
+const enc = new TextEncoder();
+const dec = new TextDecoder();
+
+function now() { return Math.floor(Date.now() / 1000); }
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -91,21 +106,193 @@ async function readBody(request) {
   }
 }
 
-function now() {
-  return Math.floor(Date.now() / 1000);
+function clientIp(request) {
+  return request.headers.get('CF-Connecting-IP') || request.headers.get('x-forwarded-for') || '';
 }
 
-/* ---------- D1 建表（幂等，IF NOT EXISTS） ---------- */
+function ok(data) { return json({ ok: true, ...data }); }
+function fail(error, status = 400, detail) {
+  return json(detail === undefined ? { ok: false, error } : { ok: false, error, detail }, status);
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^1[3-9]\d{9}$/;
+
+function validEmail(v) { return typeof v === 'string' && v.length <= 254 && EMAIL_RE.test(v); }
+function validPhone(v) { return typeof v === 'string' && PHONE_RE.test(v); }
+function validPassword(v) { return typeof v === 'string' && v.length >= 8 && v.length <= 128; }
+
+/* ---------- 编码 ---------- */
+
+function b64url(buf) {
+  const u = buf instanceof Uint8Array ? buf : new Uint8Array(buf);
+  let s = '';
+  for (let i = 0; i < u.length; i++) s += String.fromCharCode(u[i]);
+  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function b64urlDecode(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  const bin = atob(s);
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+
+/* ---------- 密码哈希（PBKDF2-SHA256） ---------- */
+
+async function hashPassword(pw) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PWD_ITER, hash: 'SHA-256' }, key, 256);
+  return b64url(salt) + '$' + b64url(bits);
+}
+
+async function verifyPassword(pw, stored) {
+  try {
+    const [s, h] = String(stored).split('$');
+    const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: b64urlDecode(s), iterations: PWD_ITER, hash: 'SHA-256' }, key, 256);
+    const h2 = b64url(bits);
+    if (h.length !== h2.length) return false;
+    let diff = 0;
+    for (let i = 0; i < h.length; i++) diff |= h.charCodeAt(i) ^ h2.charCodeAt(i);
+    return diff === 0;
+  } catch {
+    return false;
+  }
+}
+
+/* ---------- JWT（HMAC-SHA256） ---------- */
+
+let fallbackSecret = null;
+
+async function jwtKey(env) {
+  if (env.JWT_SECRET) return enc.encode(env.JWT_SECRET);
+  if (!fallbackSecret) {
+    fallbackSecret = crypto.getRandomValues(new Uint8Array(32));
+    console.warn('[auth] JWT_SECRET 未设置，使用临时随机密钥（每次部署后 token 失效）。生产环境请在项目设置中配置 JWT_SECRET。');
+  }
+  return fallbackSecret;
+}
+
+async function signJwt(payload, env) {
+  const secret = await jwtKey(env);
+  const header = b64url(enc.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
+  const body = b64url(enc.encode(JSON.stringify(payload)));
+  const key = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(header + '.' + body));
+  return header + '.' + body + '.' + b64url(sig);
+}
+
+async function verifyJwt(token, env) {
+  try {
+    const secret = await jwtKey(env);
+    const parts = String(token).split('.');
+    if (parts.length !== 3) return null;
+    const key = await crypto.subtle.importKey('raw', secret, { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+    const good = await crypto.subtle.verify('HMAC', key, b64urlDecode(parts[2]), enc.encode(parts[0] + '.' + parts[1]));
+    if (!good) return null;
+    const payload = JSON.parse(dec.decode(b64urlDecode(parts[1])));
+    if (!payload || !payload.exp || payload.exp < now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+/* ---------- D1 ---------- */
 
 let schemaReady = false;
 
 async function ensureSchema(env) {
   if (schemaReady) return;
   if (!env.DB) throw new Error('D1 binding "DB" is not configured');
-  for (const sql of SCHEMA) {
-    await env.DB.prepare(sql).run();
-  }
+  for (const sql of SCHEMA) await env.DB.prepare(sql).run();
   schemaReady = true;
+}
+
+/* ---------- 验证码 ---------- */
+
+function genCode() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+async function sendCode(env, target, purpose) {
+  // 发送频控：每目标每小时最多 CODE_MAX_SEND 次
+  const hourAgo = now() - 3600;
+  const cnt = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM verify_codes WHERE target = ? AND created_at > ?'
+  ).bind(target, hourAgo).first();
+  if (cnt && cnt.n >= CODE_MAX_SEND) return { limited: true };
+
+  const code = genCode();
+  await env.DB.prepare(
+    'INSERT INTO verify_codes (target, code, purpose, expires_at, used, created_at) VALUES (?, ?, ?, ?, 0, ?)'
+  ).bind(target, code, purpose, now() + CODE_TTL, now()).run();
+
+  // 投递：配置了 RESEND_API_KEY 时走邮件通道；否则仅记录日志
+  if (env.RESEND_API_KEY && purpose === 'register' && validEmail(target)) {
+    try {
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from: env.MAIL_FROM || '1号员工 <noreply@spec-ai.cn>',
+          to: [target],
+          subject: '1号员工 注册验证码',
+          text: `您的注册验证码是 ${code}，10 分钟内有效。`
+        })
+      });
+      return { delivered: true };
+    } catch (e) {
+      console.error('[auth] 邮件发送失败', String(e));
+    }
+  }
+  console.warn(`[auth] 验证码未投递（未配置邮件/短信通道）target=${target} code=${code}`);
+  return { delivered: false, devCode: env.DEV_MODE === '1' ? code : undefined };
+}
+
+async function consumeCode(env, target, code, purpose) {
+  const row = await env.DB.prepare(
+    'SELECT id, code, expires_at, used FROM verify_codes WHERE target = ? AND purpose = ? ORDER BY id DESC LIMIT 1'
+  ).bind(target, purpose).first();
+  if (!row) return 'code_invalid';
+  if (row.used) return 'code_used';
+  if (row.expires_at < now()) return 'code_expired';
+  if (String(row.code) !== String(code)) return 'code_invalid';
+  await env.DB.prepare('UPDATE verify_codes SET used = 1 WHERE id = ?').bind(row.id).run();
+  return 'ok';
+}
+
+/* ---------- 登录限流 ---------- */
+
+async function loginBlocked(env, ip, target) {
+  const since = now() - LOGIN_FAIL_WINDOW;
+  const r = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM login_logs WHERE success = 0 AND created_at > ? AND (ip = ? OR (target IS NOT NULL AND target = ?))'
+  ).bind(since, ip, target).first();
+  return r && r.n >= LOGIN_FAIL_LIMIT;
+}
+
+async function recordLogin(env, userId, method, target, ip, ua, success) {
+  await env.DB.prepare(
+    'INSERT INTO login_logs (user_id, method, target, ip, ua, success, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).bind(userId, method, target, ip, ua, success ? 1 : 0, now()).run();
+}
+
+/* ---------- 鉴权中间件 ---------- */
+
+async function requireUser(request, env) {
+  const auth = request.headers.get('Authorization') || '';
+  const m = /^Bearer\s+(.+)$/i.exec(auth);
+  if (!m) return null;
+  const payload = await verifyJwt(m[1], env);
+  if (!payload) return null;
+  return env.DB.prepare('SELECT id, email, phone, status, plan, plan_expires_at, created_at FROM users WHERE id = ?')
+    .bind(payload.sub).first();
 }
 
 /* ---------- 接口路由 ---------- */
@@ -113,32 +300,149 @@ async function ensureSchema(env) {
 async function handleApi(request, env, ctx, path) {
   if (request.method === 'OPTIONS') return json({ ok: true }, 204);
 
+  const method = request.method;
+  const ip = clientIp(request);
+  const ua = request.headers.get('User-Agent') || '';
+
+  // 健康检查
   if (path === '/api/health' || path === '/api/health/') {
     return handleHealth(env);
   }
 
-  // 后续阶段在此挂载：/api/auth/*  /api/me  /api/stats  /api/subscription/*  /api/license
-  return json({ ok: false, error: 'not_found' }, 404);
+  // 认证接口
+  if (path === '/api/auth/send-code' && method === 'POST') {
+    return handleSendCode(request, env);
+  }
+  if (path === '/api/auth/register' && method === 'POST') {
+    return handleRegister(request, env, ip, ua);
+  }
+  if (path === '/api/auth/login' && method === 'POST') {
+    return handleLogin(request, env, ip, ua);
+  }
+
+  // 账户信息（需登录）
+  if (path === '/api/me' && method === 'GET') {
+    const user = await requireUser(request, env);
+    if (!user) return fail('unauthorized', 401);
+    return ok({ user: publicUser(user) });
+  }
+
+  return fail('not_found', 404);
 }
 
+function publicUser(u) {
+  return {
+    id: u.id,
+    email: u.email || null,
+    phone: u.phone || null,
+    plan: u.plan || 'free',
+    planExpiresAt: u.plan_expires_at || null,
+    createdAt: u.created_at
+  };
+}
+
+/* ---------- 各接口实现 ---------- */
+
 async function handleHealth(env) {
-  let db = 'ok';
-  let error = null;
   try {
     await ensureSchema(env);
     const r = await env.DB.prepare('SELECT COUNT(*) AS n FROM users').first();
-    db = 'ok';
-    return json({
-      ok: true,
-      service: 'spec-ai-api',
-      version: VERSION,
-      db,
-      users: r ? r.n : 0,
-      time: now()
-    });
+    return ok({ service: 'spec-ai-api', version: VERSION, db: 'ok', users: r ? r.n : 0, time: now() });
   } catch (e) {
-    return json({ ok: false, error: 'db_unavailable', detail: String(e.message || e) }, 503);
+    return fail('db_unavailable', 503, String(e.message || e));
   }
+}
+
+async function handleSendCode(request, env) {
+  const b = await readBody(request);
+  const target = String(b.target || '').trim().toLowerCase();
+  const purpose = b.purpose === 'login' ? 'login' : 'register';
+  if (!validEmail(target) && !validPhone(target)) return fail('invalid_target');
+  const r = await sendCode(env, target, purpose);
+  if (r.limited) return fail('too_many_requests', 429);
+  const resp = { delivered: !!r.delivered };
+  if (env.DEV_MODE === '1' && r.devCode) resp.devCode = r.devCode;
+  return ok(resp);
+}
+
+async function handleRegister(request, env, ip, ua) {
+  await ensureSchema(env);
+  const b = await readBody(request);
+  const method = b.method === 'phone' ? 'phone' : 'email';
+  const email = method === 'email' ? String(b.email || '').trim().toLowerCase() : null;
+  const phone = method === 'phone' ? String(b.phone || '').trim() : null;
+  const password = b.password || '';
+  const code = String(b.code || '');
+
+  if (method === 'email' && !validEmail(email)) return fail('invalid_email');
+  if (method === 'phone' && !validPhone(phone)) return fail('invalid_phone');
+  if (method === 'email' && !validPassword(password)) return fail('invalid_password');
+  if (!code) return fail('code_required');
+
+  const target = method === 'email' ? email : phone;
+  const ver = await consumeCode(env, target, code, 'register');
+  if (ver !== 'ok') return fail(ver);
+
+  // 查重
+  const exist = await env.DB.prepare(
+    method === 'email'
+      ? 'SELECT id FROM users WHERE email = ?'
+      : 'SELECT id FROM users WHERE phone = ?'
+  ).bind(target).first();
+  if (exist) return fail('already_registered', 409);
+
+  const passHash = method === 'email' ? await hashPassword(password) : null;
+  const t = now();
+  const ins = await env.DB.prepare(
+    'INSERT INTO users (email, phone, pass_hash, status, plan, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+  ).bind(method === 'email' ? target : null, method === 'phone' ? target : null, passHash, 'active', 'free', t, t).run();
+
+  const userId = ins.meta.last_row_id;
+  const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
+  await recordLogin(env, userId, method, target, ip, ua, true);
+  const token = await signJwt({ sub: userId, plan: 'free', iat: now(), exp: now() + JWT_TTL }, env);
+  return ok({ token, user: publicUser(user) });
+}
+
+async function handleLogin(request, env, ip, ua) {
+  await ensureSchema(env);
+  const b = await readBody(request);
+  const method = b.method === 'phone' ? 'phone' : 'email';
+  const email = method === 'email' ? String(b.email || '').trim().toLowerCase() : null;
+  const phone = method === 'phone' ? String(b.phone || '').trim() : null;
+  const password = b.password || '';
+  const code = String(b.code || '');
+
+  if (method === 'email') {
+    if (!validEmail(email)) return fail('invalid_email');
+    if (!validPassword(password)) return fail('invalid_password');
+  } else {
+    if (!validPhone(phone)) return fail('invalid_phone');
+    if (!code) return fail('code_required');
+  }
+
+  const target = method === 'email' ? email : phone;
+  if (await loginBlocked(env, ip, target)) return fail('too_many_attempts', 429);
+
+  let user = await env.DB.prepare(
+    method === 'email' ? 'SELECT * FROM users WHERE email = ?' : 'SELECT * FROM users WHERE phone = ?'
+  ).bind(target).first();
+
+  if (method === 'phone') {
+    const ver = await consumeCode(env, target, code, 'login');
+    if (ver !== 'ok') {
+      await recordLogin(env, user ? user.id : null, method, target, ip, ua, false);
+      return fail(ver);
+    }
+  } else if (!user || !user.pass_hash || !(await verifyPassword(password, user.pass_hash))) {
+    await recordLogin(env, user ? user.id : null, method, target, ip, ua, false);
+    return fail('bad_credentials', 401);
+  }
+
+  if (!user || user.status !== 'active') return fail('account_disabled', 403);
+  await recordLogin(env, user.id, method, target, ip, ua, true);
+  const token = await signJwt({ sub: user.id, plan: user.plan, iat: now(), exp: now() + JWT_TTL }, env);
+  return ok({ token, user: publicUser(user) });
 }
 
 /* ---------- 入口 ---------- */
@@ -151,10 +455,9 @@ export default {
       if (path.startsWith('/api/')) {
         return await handleApi(request, env, ctx, path);
       }
-      // 静态资源回退：现有页面/样式/脚本照常服务
       return env.ASSETS.fetch(request);
     } catch (e) {
-      return json({ ok: false, error: 'internal', detail: String(e.message || e) }, 500);
+      return fail('internal', 500, String(e.message || e));
     }
   }
 };

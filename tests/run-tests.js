@@ -53,7 +53,7 @@ function test(name, fn) {
 }
 
 /* ---------- 1. HTML 结构 ---------- */
-const HTML_FILES = ['index.html', 'download.html', 'changelog.html', 'hardware.html', '404.html'];
+const HTML_FILES = ['index.html', 'download.html', 'changelog.html', 'hardware.html', '404.html', 'login.html'];
 const VOID_TAGS = new Set([
   'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input',
   'link', 'meta', 'param', 'source', 'track', 'wbr',
@@ -64,6 +64,7 @@ const REQUIRED_IDS = {
   'changelog.html': ['changelog-list', 'site-nav', 'bg-canvas'],
   'hardware.html': ['site-nav', 'bg-canvas'],
   '404.html': ['bg-canvas'],
+  'login.html': ['auth-form', 'auth-submit', 'auth-send-code', 'site-nav', 'bg-canvas'],
 };
 
 test('HTML 文件存在且标签平衡', () => {
@@ -231,6 +232,14 @@ test('_worker.js 语法检查（后端 API worker）', () => {
   if (!exists('_worker.js')) return ['_worker.js 不存在'];
   const r = spawnSync(process.execPath, ['--check', path.join(ROOT, '_worker.js')], { encoding: 'utf8' });
   return r.status === 0 ? [] : [r.stderr || 'node --check 失败'];
+});
+
+test('后端单测（注册/登录/鉴权流程）', () => {
+  if (!exists('tests/worker-unit.js')) return ['tests/worker-unit.js 不存在'];
+  const r = spawnSync(process.execPath, [path.join(ROOT, 'tests/worker-unit.js')], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+  if (r.status === 0) return [];
+  const tail = (r.stdout || '').split('\n').filter(l => /❌|结果/.test(l)).join('\n');
+  return [tail || r.stderr || '单测失败'];
 });
 
 /* ---------- 6. CSS 平衡 ---------- */

@@ -612,3 +612,89 @@ a { color: inherit; }
   .reveal { opacity: 1; transform: none; }
   .fade-item { opacity: 1; }
 }
+
+/* ---------- 账户体系（登录 / 注册） ---------- */
+.auth-card {
+  max-width: 440px;
+  margin: 0 auto;
+  background: var(--ink-2);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius);
+  padding: 32px 30px 28px;
+}
+.auth-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+.auth-tab {
+  flex: 1;
+  padding: 9px 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 14.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.auth-tab.active { background: var(--accent); color: #fff; }
+.auth-methods {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 22px;
+}
+.auth-method {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: 0 0 6px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.auth-method.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+.auth-field { margin-bottom: 16px; }
+.auth-field label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 7px;
+}
+.auth-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 15px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+.auth-field input:focus { border-color: rgba(194, 91, 67, 0.55); }
+.auth-field input::placeholder { color: var(--text-muted); }
+.auth-code-row { display: flex; gap: 10px; }
+.auth-code-row input { flex: 1; min-width: 0; }
+.auth-code-row .btn { white-space: nowrap; }
+#auth-submit { width: 100%; margin-top: 6px; }
+.auth-msg {
+  min-height: 20px;
+  margin-top: 14px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.auth-msg.error { color: #e0605a; }
+.auth-msg.ok { color: var(--info); }
+.auth-hint {
+  margin-top: 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
