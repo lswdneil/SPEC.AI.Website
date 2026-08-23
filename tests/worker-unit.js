@@ -7,7 +7,15 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { DatabaseSync } = require('node:sqlite');
+
+// node:sqlite 需要 Node ≥ 22.5；旧版本时优雅跳过（CI 已用 Node 24，此处仅防御）
+let DatabaseSync = null;
+try {
+  ({ DatabaseSync } = require('node:sqlite'));
+} catch (e) {
+  console.log('SKIP: node:sqlite 不可用（需 Node >= 22.5），跳过后端单测');
+  process.exit(0);
+}
 
 const ROOT = path.join(__dirname, '..');
 const SRC = path.join(ROOT, '_worker.js');
