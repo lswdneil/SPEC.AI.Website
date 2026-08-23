@@ -9,6 +9,7 @@
 - 下载数据集中在 `data/releases.json`，发版只需改一个文件
 - 附带 GitHub Actions 三平台自动构建发布工作流
 - **账户体系后端**：`_worker.js`（Cloudflare Pages advanced worker + D1），App 端对接见 [APP-API.md](APP-API.md)
+- **品牌设计规范**：SPEC 品牌所有网站的从零搭建指南，见 [BRAND-DESIGN-SPEC.md](BRAND-DESIGN-SPEC.md)
 
 ---
 
