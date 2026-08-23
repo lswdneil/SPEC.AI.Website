@@ -15,7 +15,7 @@ PROJ = os.environ.get("CLOUDFLARE_PAGES_PROJECT", "spec-ai-website")
 URL = f"https://api.cloudflare.com/client/v4/accounts/{ACC}/pages/projects/{PROJ}/deployments"
 
 EXCLUDE_DIRS = {".git", "node_modules", "tests", "site-preview", "scripts", ".github", "__pycache__"}
-EXCLUDE_FILES = {"README.md", "REMINDERS.md", "LICENSE", "package.json", "package-lock.json", ".gitignore", "vercel.json"}
+EXCLUDE_FILES = {"README.md", "REMINDERS.md", "APP-API.md", "LICENSE", "package.json", "package-lock.json", ".gitignore", "vercel.json"}
 
 
 def get_token():

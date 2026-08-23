@@ -8,6 +8,7 @@
 - 安装包主下载走 **阿里云 OSS**（国内直连加速），GitHub Releases 作海外备用
 - 下载数据集中在 `data/releases.json`，发版只需改一个文件
 - 附带 GitHub Actions 三平台自动构建发布工作流
+- **账户体系后端**：`_worker.js`（Cloudflare Pages advanced worker + D1），App 端对接见 [APP-API.md](APP-API.md)
 
 ---
 
