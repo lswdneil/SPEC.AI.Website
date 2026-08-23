@@ -34,7 +34,7 @@ window.I18N = {
   "cap-team": "5가지 팀 전략, 자동 팀 구성, 인간 승인 흐름",
   "cap-office": "한 문장으로 Word / PPT / Excel, 11개 Office 스킬",
 
-  "steps-title": "첫 직원을 고용하는 세 단계",
+  "steps-title": "첫 AI 디지털 직원을 고용하는 세 단계",
   "step-1-t": "다운로드 및 설치",
   "step-1-d": "Windows 설치 프로그램을 다운로드하여 실행하세요. 첫 실행은 설정 마법사가 안내합니다.",
   "step-2-t": "모델 연결",

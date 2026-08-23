@@ -39,7 +39,7 @@ window.I18N = {
   "cap-office": "一句话生成 Word / PPT / Excel，内置 11 个 Office 技能",
 
   /* 三步 */
-  "steps-title": "三步，雇下您的第一位员工",
+  "steps-title": "三步，雇下您的第一位AI数字员工",
   "step-1-t": "下载安装",
   "step-1-d": "下载 Windows 安装包，双击完成安装，首次启动有引导向导帮您完成配置。",
   "step-2-t": "接入模型",

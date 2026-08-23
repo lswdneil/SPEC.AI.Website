@@ -34,7 +34,7 @@ window.I18N = {
   "cap-team": "5 team strategies, auto crew formation, human-in-the-loop approval",
   "cap-office": "Word / PPT / Excel from a sentence, 11 built-in Office skills",
 
-  "steps-title": "Three Steps to Hire Your First Employee",
+  "steps-title": "Three Steps to Hire Your First AI Digital Employee",
   "step-1-t": "Download & Install",
   "step-1-d": "Download the Windows installer and run it. A setup wizard guides you through the first launch.",
   "step-2-t": "Connect Models",
