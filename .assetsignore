@@ -1,0 +1,16 @@
+# Cloudflare Pages 资产排除（Git 集成部署上传整个仓库，此文件控制哪些不公开）
+# 语法同 .gitignore；被排除的文件不会部署到线上
+.git/
+.github/
+docs/
+scripts/
+tests/
+node_modules/
+*.md
+.assetsignore
+.gitignore
+.gitattributes
+vercel.json
+package.json
+package-lock.json
+LICENSE
