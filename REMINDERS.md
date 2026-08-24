@@ -17,6 +17,10 @@
 - [ ] **校准发布工作流**：`.github/workflows/release.yml` 中的 electron-builder 命令与产物路径需按 1号员工 源码仓库实际配置调整；确认后由用户决定是否接入
 - [ ] **自动更新联调**：electron-updater 的 `latest.yml` 发布链路（属产品端，网站端需在发布后同步版本信息到 `releases.json`）
 
+## 跨站协作提醒（site2 云端智能体）
+
+- [ ] **提醒用户（site2 后端开发到"对账"模块时）**：site2（SPEC-云端智能体，独立仓库 `admin-dashboard/`）设计上会从 site1 账号体系**只读**拉取订阅/用户数据做付费对账（site2 侧 HANDOFF.md/README/PLAN.md 均已记录此唯一跨站数据关联）。当前 site1 生产 D1 已有 2 个注册用户（邮箱 wd_alpha@163.com + 手机号用户，双通道注册验证通过）；届时需在 site1 侧提供只读拉取渠道（现有 `/api/stats` 或用户授权的 D1 导出），**权限由用户开通**。site1 本身无需为此改动代码，等 site2 进入对账开发阶段再提醒用户衔接。
+
 - [x] **多语支持**：官网已支持中/英/日/韩四语切换（导航语言按钮，localStorage 记忆）；新文案需同步维护 assets/i18n/ 四语字典
 - [x] **访问统计**：✅ Cloudflare Web Analytics 已开通（自动模式，spec-ai.cn，siteTag `ca2da7376ad74236bb68bad65b62e520`）；零代码注入，Pages 开通后自动统计；入口 dash.cloudflare.com → 数据分析 → Web Analytics
 - [x] **短信验证码通道（阿里云"短信认证"）**：✅ 已上线（2026-08-25，API v0.6.0）— 服务已开通（dypns.console.aliyun.com，赠送签名"恒创联众"+ 模板 100001/100003/100004）；RAM 子账号 `spec-ai-sms` 已创建并授权 `AliyunDypnsFullAccess`（账号级）；AccessKey 已配置到 Cloudflare 生产环境变量（`ALIYUN_AK_ID`/`ALIYUN_AK_SECRET` secret、`ALIYUN_SMS_SIGN`/`ALIYUN_SMS_TEMPLATE` plain）；`_worker.js` 新增 `sendSmsAliyun`（RPC 签名 HMAC-SHA1，dypnsapi.aliyuncs.com）并接入 `sendCode` 短信分支（阿里云优先、`SMS_WEBHOOK_URL` 回退）；模板优先级已修正（通用 env 对注册/登录生效、不覆盖重置/绑定专用模板）；单测 92/92、门禁 11/11 全绿；**已推送部署**（commit `df736e1`+`125b336`，部署 47193a97 success，生产 API v0.6.0 生效，env 全部注入）——⚠️ **待实测**：手机号真实收码确认赠送模板变量名（${code}/${min}）
