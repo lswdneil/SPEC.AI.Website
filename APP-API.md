@@ -2,7 +2,7 @@
 
 > 适用对象：1号员工 桌面端（Electron）开发。
 > 版本：API v0.5.0 · 更新：2026-08-23
-> 基础地址：生产 `https://spec-ai.cn`（上线后）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
+> 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
 
 ---
 
