@@ -61,6 +61,7 @@ function assert(name, cond, extra) {
 async function main() {
   const mod = await import('file://' + tmpFile.replace(/\\/g, '/'));
   const worker = mod.default;
+  const { aliyunPercentEncode, smsTemplateFor, sendSmsAliyun, sendCode } = mod;
   const env = { DB: makeDb(), ASSETS: { fetch: async (req) => new Response('static:' + new URL(req.url).pathname) }, JWT_SECRET: 'unit-test-secret', DEV_MODE: '1' };
 
   // 模拟不同用户来自不同出口 IP（避免限流聚合误伤）
@@ -289,6 +290,71 @@ async function main() {
   // 统计不含注册标记
   r = await call('/api/stats', null, { Authorization: 'Bearer ' + phoneToken });
   assert('stats 不含 register 方法', r.status === 200 && !(r.data.stats.methods || []).some(function (m) { return m.method === 'register'; }), JSON.stringify(r.data.stats.methods));
+
+  console.log('— 阿里云短信认证（SendSmsVerifyCode）');
+  const akEnv = { DB: makeDb(), ASSETS: { fetch: async () => new Response('static') }, JWT_SECRET: 'x',
+    ALIYUN_AK_ID: 'LTAI_TESTID0000', ALIYUN_AK_SECRET: 'TEST-SECRET-KEY', ALIYUN_SMS_SIGN: '恒创联众', ALIYUN_SMS_TEMPLATE: '100001' };
+  // 签名工具正确性（与阿里云官方文档示例一致：testid/testsecret → MxbnVAM4w6sft9xjVpe/GCKueuk=）
+  const enc = new TextEncoder();
+  const kv = { AccessKeyId: 'testid', Action: 'DescribeRegions', Format: 'XML', SignatureMethod: 'HMAC-SHA1',
+    SignatureNonce: '3ee8c1b8-83d3-44af-a94f-4e0ad82fd6cf', SignatureVersion: '1.0',
+    Timestamp: '2016-02-23T12:46:24Z', Version: '2014-05-26' };
+  const canonical = Object.keys(kv).sort().map(k => aliyunPercentEncode(k) + '=' + aliyunPercentEncode(String(kv[k]))).join('&');
+  const stringToSign = 'POST&%2F&' + aliyunPercentEncode(canonical);
+  const key = await crypto.subtle.importKey('raw', enc.encode('testsecret&'), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+  const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(stringToSign));
+  let sigBin = '';
+  for (const b of new Uint8Array(sigBuf)) sigBin += String.fromCharCode(b);
+  assert('RPC 签名与官方示例一致', btoa(sigBin) === 'MxbnVAM4w6sft9xjVpe/GCKueuk=', btoa(sigBin));
+  // 百分号编码：空格、中文、冒号等
+  assert('percentEncode 空格 %20', aliyunPercentEncode('a b') === 'a%20b', aliyunPercentEncode('a b'));
+  assert('percentEncode 冒号 %3A', aliyunPercentEncode('12:46') === '12%3A46', aliyunPercentEncode('12:46'));
+  assert('percentEncode 保留字符不转义', aliyunPercentEncode('-_.~AZaz09') === '-_.~AZaz09');
+  // 模板映射
+  assert('模板 register=100001', smsTemplateFor(akEnv, 'register') === '100001');
+  assert('模板 reset=100003', smsTemplateFor(akEnv, 'reset') === '100003');
+  assert('模板 bind=100004', smsTemplateFor(akEnv, 'bind') === '100004');
+  // sendSmsAliyun 成功路径（mock fetch）
+  let smsSent = null;
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url, opts) => {
+    smsSent = { url: String(url), body: String(opts.body) };
+    return new Response(JSON.stringify({ Code: 'OK', Success: true, RequestId: 'mock-1' }), { status: 200 });
+  };
+  try {
+    const r = await sendSmsAliyun(akEnv, '13800138000', '123456', 'register');
+    assert('阿里云发送成功', r && r.delivered === true, JSON.stringify(r));
+    assert('请求含 Action', smsSent.body.includes('Action=SendSmsVerifyCode'), smsSent.body.slice(0, 200));
+    assert('请求含手机号', smsSent.body.includes('PhoneNumber=13800138000'), smsSent.body.slice(0, 300));
+    assert('请求含签名', smsSent.body.includes('Signature='), smsSent.body.slice(0, 400));
+    assert('TemplateParam 含 code', smsSent.body.includes('TemplateParam=') && decodeURIComponent(smsSent.body).includes('123456'), smsSent.body.slice(0, 400));
+    assert('请求签名名称', decodeURIComponent(smsSent.body).includes('恒创联众'), smsSent.body.slice(0, 400));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  // 失败路径（阿里云返回错误）
+  globalThis.fetch = async () => new Response(JSON.stringify({ Code: 'FREQUENCY_FAIL', Message: '频控校验未通过' }), { status: 400 });
+  try {
+    const r2 = await sendSmsAliyun(akEnv, '13800138000', '123456', 'register');
+    assert('阿里云错误不误报成功', r2 && r2.delivered === false && r2.error === 'FREQUENCY_FAIL', JSON.stringify(r2));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  // sendCode 走阿里云通道（DEV_MODE=0 时仍应视为已投递；复用主 DB 避免 schemaReady 缓存跳过建表）
+  const sendEnv = { DB: env.DB, ASSETS: { fetch: async () => new Response('static') }, JWT_SECRET: 'x', DEV_MODE: '0',
+    ALIYUN_AK_ID: 'LTAI_TESTID0000', ALIYUN_AK_SECRET: 'TEST-SECRET-KEY' };
+  globalThis.fetch = async () => new Response(JSON.stringify({ Code: 'OK', Success: true }), { status: 200 });
+  try {
+    const sendRes = await worker.fetch(new Request('https://spec-ai.cn/api/auth/send-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': '203.0.113.30' },
+      body: JSON.stringify({ target: '13600136000', purpose: 'register' })
+    }), sendEnv, {});
+    const sendData = await sendRes.json().catch(() => null);
+    assert('sendCode 阿里云投递成功', sendRes.status === 200 && sendData && sendData.delivered === true && !sendData.devCode, JSON.stringify(sendData));
+  } finally {
+    globalThis.fetch = realFetch;
+  }
 
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});

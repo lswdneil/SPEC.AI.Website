@@ -1,7 +1,7 @@
 # 1号员工 官网后端 API 对接文档（App 端）
 
 > 适用对象：1号员工 桌面端（Electron）开发。
-> 版本：API v0.5.1 · 更新：2026-08-24（v0.5.1：入口统一建表修复——send-code 首次调用不再因空库 500；接口协议无变化）
+> 版本：API v0.6.0 · 更新：2026-08-25（v0.6.0：新增阿里云"短信认证"手机验证码通道，SendSmsVerifyCode 接入，`send-code` 对手机号目标自动走短信；接口协议无变化）
 > 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
 
 ---
@@ -69,6 +69,7 @@ POST /api/auth/send-code
 - `delivered=false` 表示验证码通道未配置（生产需配置邮件/短信服务）。
 - 同一目标每小时最多 5 次（超限 `too_many_requests`）。
 - 验证码 6 位数字、10 分钟有效、一次性。
+- **短信通道（生产）**：手机号目标自动走阿里云"短信认证"（SendSmsVerifyCode，赠送签名"恒创联众"，模板按场景：注册/登录 100001、重置 100003、绑定 100004），无需改动本接口；投递失败会记录服务端日志并返回 `delivered=false`。
 
 ### 2.2 注册
 
@@ -427,7 +428,9 @@ POST /api/license/check
 | `JWT_SECRET` | Cloudflare 控制台 → 项目 → 设置 → 变量（secret） | **必须**配置，否则每次部署后 token 失效 |
 | `DEV_MODE` | 同上（plain） | 联调 `1`，生产 `0` |
 | `RESEND_API_KEY` / `MAIL_FROM` | 同上（secret） | 可选：验证码邮件通道（未配置时验证码不投递，仅日志） |
-| `SMS_WEBHOOK_URL` | 同上（secret） | 可选：短信通道钩子，服务端向该地址 POST `{phone, code, purpose}` |
-| 短信通道 | 待接入 | 手机验证码生产通道需短信服务商（预留 `sendCode` 扩展点） |
+| `SMS_WEBHOOK_URL` | 同上（secret） | 可选：旧版短信通道钩子，服务端向该地址 POST `{phone, code, purpose}`（阿里云通道未配置时才启用） |
+| `ALIYUN_AK_ID` / `ALIYUN_AK_SECRET` | 同上（secret） | 可选：阿里云 AccessKey（RAM 子账号 `spec-ai-sms`，已授权 `AliyunDypnsFullAccess`）；配置后手机验证码自动走"短信认证"通道 |
+| `ALIYUN_SMS_SIGN` | 同上（plain） | 可选：短信签名，默认 `恒创联众`（赠送签名） |
+| `ALIYUN_SMS_TEMPLATE` | 同上（plain） | 可选：默认模板 Code（默认 `100001` 注册/登录；重置 `100003`、绑定 `100004` 按场景自动选择，亦可用 `ALIYUN_SMS_TEMPLATE_RESET` / `ALIYUN_SMS_TEMPLATE_BIND` 覆盖） |
 
 **联调地址**：`https://spec-ai.cn`（上线后）；平台开通前可用 Cloudflare Pages 最新部署 URL（`https://<deployment-id>.spec-ai-website.pages.dev`）。

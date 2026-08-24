@@ -5,13 +5,15 @@
  * - 其余路径    回退到静态资源（env.ASSETS），现有页面完全不受影响
  * - 依赖        D1 数据库绑定（变量名 DB）+ Web Crypto（零外部依赖）
  *
- * 安全约定：密码 PBKDF2-SHA256（21 万次迭代）哈希、JWT(HMAC-SHA256) 鉴权、
+ * 安全约定：密码 PBKDF2-SHA256（10 万次迭代，Workers 上限）哈希、JWT(HMAC-SHA256) 鉴权、
  * 验证码一次性使用（10 分钟过期）、登录/发码限流。
  * 环境变量：JWT_SECRET（必配，生产）、DEV_MODE（开发调试返回验证码）、
- *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
+ *           RESEND_API_KEY（可选，邮箱验证码发送通道）、
+ *           ALIYUN_AK_ID / ALIYUN_AK_SECRET / ALIYUN_SMS_SIGN / ALIYUN_SMS_TEMPLATE
+ *           （可选，阿里云"短信认证"SendSmsVerifyCode 通道，号码认证服务 dypnsapi）。
  */
 
-const VERSION = '0.5.2';
+const VERSION = '0.6.0';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -251,6 +253,73 @@ function genCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+/* ---------- 阿里云短信认证（SendSmsVerifyCode，RPC 签名） ---------- */
+
+// 阿里云 RPC 百分号编码（RFC3986：保留 A-Z a-z 0-9 - _ . ~，其余 UTF-8 字节 %XX）
+function aliyunPercentEncode(s) {
+  return encodeURIComponent(s)
+    .replace(/!/g, '%21')
+    .replace(/'/g, '%27')
+    .replace(/\(/g, '%28')
+    .replace(/\)/g, '%29')
+    .replace(/\*/g, '%2A');
+}
+
+// HMAC-SHA1 签名：Signature = Base64(HMAC-SHA1(secret + "&", stringToSign))
+async function aliyunHmacSha1(secret, data) {
+  const key = await crypto.subtle.importKey(
+    'raw', enc.encode(secret + '&'),
+    { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(data));
+  const bytes = new Uint8Array(sig);
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+// 短信认证模板映射（赠送模板；允许按场景覆盖）
+function smsTemplateFor(env, purpose) {
+  const map = { register: '100001', login: '100001', reset: '100003', bind: '100004' };
+  return env['ALIYUN_SMS_TEMPLATE_' + purpose.toUpperCase()] || map[purpose] || env.ALIYUN_SMS_TEMPLATE || '100001';
+}
+
+// 发送短信验证码（阿里云号码认证服务 dypnsapi.aliyuncs.com，Action=SendSmsVerifyCode）
+async function sendSmsAliyun(env, phone, code, purpose) {
+  if (!env.ALIYUN_AK_ID || !env.ALIYUN_AK_SECRET) return null;
+  const params = {
+    AccessKeyId: env.ALIYUN_AK_ID,
+    Action: 'SendSmsVerifyCode',
+    Format: 'JSON',
+    SignatureMethod: 'HMAC-SHA1',
+    SignatureNonce: crypto.randomUUID(),
+    SignatureVersion: '1.0',
+    Timestamp: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'),
+    Version: '2017-05-25',
+    PhoneNumber: phone,
+    SignName: env.ALIYUN_SMS_SIGN || '恒创联众',
+    TemplateCode: smsTemplateFor(env, purpose),
+    TemplateParam: JSON.stringify({ code, min: String(Math.round(CODE_TTL / 60)) }),
+    ValidTime: String(CODE_TTL),
+    Interval: '60',
+    DuplicatePolicy: '1'
+  };
+  const canonical = Object.keys(params).sort()
+    .map(k => aliyunPercentEncode(k) + '=' + aliyunPercentEncode(String(params[k])))
+    .join('&');
+  const stringToSign = 'POST&%2F&' + aliyunPercentEncode(canonical);
+  const signature = aliyunPercentEncode(await aliyunHmacSha1(env.ALIYUN_AK_SECRET, stringToSign));
+  const res = await fetch('https://dypnsapi.aliyuncs.com/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: canonical + '&Signature=' + signature
+  });
+  const data = await res.json().catch(() => null);
+  if (data && data.Code === 'OK' && data.Success !== false) return { delivered: true };
+  // 返回错误码（如 FREQUENCY_FAIL / MOBILE_NUMBER_ILLEGAL），失败时附 Message 供排障
+  return { delivered: false, error: (data && data.Code) || 'http_' + res.status, detail: data && data.Message };
+}
+
 async function sendCode(env, target, purpose) {
   // 发送频控：每目标每小时最多 CODE_MAX_SEND 次
   const hourAgo = now() - 3600;
@@ -264,7 +333,7 @@ async function sendCode(env, target, purpose) {
     'INSERT INTO verify_codes (target, code, purpose, expires_at, used, created_at) VALUES (?, ?, ?, ?, 0, ?)'
   ).bind(target, code, purpose, now() + CODE_TTL, now()).run();
 
-  // 投递：优先邮件（RESEND_API_KEY），其次短信钩子（SMS_WEBHOOK_URL）；均未配置则仅记录日志
+  // 投递：优先邮件（RESEND_API_KEY），其次短信（阿里云短信认证 SendSmsVerifyCode，回退 SMS_WEBHOOK_URL）；均未配置则仅记录日志
   if (env.RESEND_API_KEY && validEmail(target)) {
     const subject = purpose === 'register'
       ? '1号员工 注册验证码'
@@ -285,16 +354,29 @@ async function sendCode(env, target, purpose) {
       console.error('[auth] 邮件发送失败', String(e));
     }
   }
-  if (env.SMS_WEBHOOK_URL && validPhone(target)) {
-    try {
-      await fetch(env.SMS_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: target, code, purpose })
-      });
-      return { delivered: true };
-    } catch (e) {
-      console.error('[auth] 短信发送失败', String(e));
+  if (validPhone(target)) {
+    // 阿里云"短信认证"通道（ALIYUN_AK_ID + ALIYUN_AK_SECRET 已配置时优先）
+    if (env.ALIYUN_AK_ID && env.ALIYUN_AK_SECRET) {
+      try {
+        const r = await sendSmsAliyun(env, target, code, purpose);
+        if (r && r.delivered) return { delivered: true };
+        console.error('[auth] 阿里云短信发送失败', r && r.error);
+      } catch (e) {
+        console.error('[auth] 阿里云短信发送异常', String(e));
+      }
+    }
+    // 旧版 Webhook 通道（兼容已有配置）
+    if (env.SMS_WEBHOOK_URL) {
+      try {
+        await fetch(env.SMS_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone: target, code, purpose })
+        });
+        return { delivered: true };
+      } catch (e) {
+        console.error('[auth] 短信发送失败', String(e));
+      }
     }
   }
   console.warn(`[auth] 验证码未投递（未配置邮件/短信通道）target=${target} code=${code}`);
@@ -865,6 +947,8 @@ async function handleLogin(request, env, ip, ua) {
 }
 
 /* ---------- 入口 ---------- */
+
+export { aliyunPercentEncode, smsTemplateFor, sendSmsAliyun, sendCode };
 
 export default {
   async fetch(request, env, ctx) {
