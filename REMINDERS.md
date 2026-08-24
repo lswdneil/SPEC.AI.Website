@@ -49,3 +49,7 @@
 - 网站端改动：我先自检（语法、渲染、像素验证）通过后，再通知用户确认
 - 涉及重大决策（品牌、视觉、架构）：先与用户逐一确认，批准后再执行
 - **Git 推送规则（2026-08-24 用户明确）**：日常开发提交仅在本地（`git commit`），**不 push 到 GitHub**；需要同步远端时，须用户明确允许或用户主动告知。注意：Cloudflare 是 Git 集成部署（push 即上线），因此**不推送 = 不上线**，线上更新需用户授权 push
+- **API 自检长期约定（2026-08-25 用户确认，源自 BUG-001 CORS 预检 500 漏检）**：凡改动 `_worker.js` 路由/响应，自检必须覆盖**浏览器协议层**，不能只做功能路径验证：
+  1. **OPTIONS 预检**：单测必须发送带 `Origin` + `Access-Control-Request-Method` + `Access-Control-Request-Headers` 的 OPTIONS 请求，断言 204 无 body + CORS 头齐全（`tests/worker-unit.js` 已有 CORS 预检回归用例，保持不删）
+  2. **浏览器语义而非 curl/Node 直连**：Node/curl 直连不受 CORS 约束，会绕开预检类 bug——涉及认证/许可/订阅等带 JSON/Authorization 头的接口改动，除直连验证外，需用带 Origin 的预检语义确认
+  3. **204/304 等 null-body 状态码**：不得经 `json()`（总会带 body）返回；须 `new Response(null, {...})`
