@@ -7,10 +7,10 @@
 
 - **平台**：Cloudflare Pages，项目名 **`spec-ai-website-git`**（Git 集成，非 Direct Upload）
 - **代码仓库**：GitHub `lswdneil/SPEC.AI.Website`（main 分支）
-- **部署方式**：**push 到 main → Cloudflare 自动构建部署**（无构建命令，输出目录 = 仓库根）
+- **部署方式**：**push 到 main → Cloudflare 自动构建部署**（构建命令 `mkdir -p dist && tar --exclude=... -c . | tar -x -C dist`，输出目录 `dist`——只部署线上需要的文件）
 - **自定义域名**：`spec-ai.cn` + `www.spec-ai.cn`（CNAME → spec-ai-website-git.pages.dev）
 - **后端**：`_worker.js` 高级模式（advanced worker）+ D1 绑定 `DB`；环境变量 `JWT_SECRET`（secret）、`DEV_MODE=0`
-- **排除文件**：`.assetsignore`（内部文档 docs/*.md/scripts/tests 等不上传，防公开泄露）
+- **排除文件**：构建命令用 tar `--exclude` 排除 `docs/`、`*.md`、`scripts/`、`tests/`、`.github/` 等内部文件（防公开泄露）
 
 ## 2. 日常部署流程
 
@@ -63,11 +63,24 @@ GET /accounts/{ACC}/workers/scripts
 | 环境变量/secret | PATCH 项目 `deployment_configs.production.env_vars`；secret 值只在写入时可见，读不回明文——迁移时生成新值 |
 | 自定义域名迁移 | 旧项目保留无害，但域名绑定要释放给新项目；DNS 指向新项目后 spec-ai.cn 立即生效（证书几分钟） |
 
-### 3.3 安全教训：Git 集成会公开整个仓库
+### 3.3 安全教训：Git 集成会公开整个仓库；`.assetsignore` 无效
 
 **现象**：Git 集成（无构建命令、输出目录=根）把仓库**所有文件**部署上线——`APP-API.md`、`README.md`、`docs/` 需求文档全部可公开访问（HTTP 200）。
 
-**修复**：仓库根创建 **`.assetsignore`**（语法同 .gitignore），排除 `docs/`、`scripts/`、`tests/`、`.github/`、`*.md`、`LICENSE` 等内部文件。**上线后必须抽查**：`curl https://spec-ai.cn/README.md` 应为 404。
+**踩坑**：`.assetsignore` 对 **Git 集成部署无效**（实测不生效；Cloudflare Pages 无内置排除机制，社区亦确认）。正确方案是**构建命令 + 输出目录**：
+
+```
+构建命令：mkdir -p dist && tar --exclude='.git' --exclude='docs' --exclude='scripts' --exclude='tests' --exclude='.github' --exclude='*.md' --exclude='dist' --exclude='LICENSE' --exclude='vercel.json' --exclude='package.json' --exclude='package-lock.json' -c . | tar -x -C dist
+输出目录：dist
+```
+
+**缓存残留**：已公开过的文件即使新部署排除，**CDN 边缘缓存仍会残留**（实测 README.md 时 404 时 200）——需 **Purge Everything**（Zone → Caching → Purge，需 zone 权限）；另有"资产保留缓存"最长一周自然过期且无法手动清除。**教训：任何内部/敏感文件一旦误部署，视为可能已公开（缓存无法强制清除），必要时轮换相关凭据**。
+
+**验证**（用 cache-busting 绕过边缘缓存确认真实状态）：
+```bash
+curl "https://spec-ai.cn/README.md?x=$RANDOM"   # 应 404（源站已排除）
+curl "https://spec-ai.cn/?x=$RANDOM"             # 应 200
+```
 
 ### 3.4 上线后验证清单
 

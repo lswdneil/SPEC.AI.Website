@@ -47,7 +47,7 @@ software-download-site/
 3. 本地预览：`python -m http.server 8080` → 打开 `http://localhost:8080`。
 4. 部署（**Git 集成**，推荐）：本仓库已连接到 Cloudflare Pages 项目 `spec-ai-website-git`（GitHub `lswdneil/SPEC.AI.Website`），**push 到 main 即自动构建部署**，无需本地脚本。
    - ⚠️ **不要用 Direct Upload 部署**（`scripts/deploy.py`）：Cloudflare 存在 Direct Upload 路径平台 bug（2026-07 起多起案例，部署记录成功但永不 serving、子 URL 全 404）。Git 集成部署已验证正常。
-   - ⚠️ **Git 集成会上传整个仓库**：仓库根 `.assetsignore` 已排除 `docs/`、`*.md`、`scripts/` 等内部文件（部署后抽查 `spec-ai.cn/README.md` 应为 404）。完整部署与排障流程见 [docs/DEPLOY-RUNBOOK.md](docs/DEPLOY-RUNBOOK.md)（2026-08-24 上线经验）。
+   - ⚠️ **Git 集成会上传整个仓库**：项目已配置构建命令（tar 排除 `docs/`、`*.md`、`scripts/` 等）+ 输出目录 `dist`，只部署线上需要的文件（`.assetsignore` 对 Git 集成无效，勿依赖）。部署后抽查 `spec-ai.cn/README.md` 应为 404（如仍 200 是边缘缓存残留，Purge 即可）。完整部署与排障流程见 [docs/DEPLOY-RUNBOOK.md](docs/DEPLOY-RUNBOOK.md)（2026-08-24 上线经验）。
 5. 绑定域名：`spec-ai.cn` 的 zone 已在 Cloudflare（NS：`merlin.ns.cloudflare.com` / `reza.ns.cloudflare.com`），Pages 项目 `spec-ai-website-git` 的 Custom domains 已绑定 `spec-ai.cn` 与 `www.spec-ai.cn`，CNAME 指向 `spec-ai-website-git.pages.dev`（已生效，https 200）。
 
 > 品牌信息如需微调（颜色、文案、logo），改动集中在 `assets/css/style.css` 顶部令牌、三个 HTML 与 `releases.json`。

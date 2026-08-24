@@ -1,5 +1,5 @@
-# Cloudflare Pages 资产排除（Git 集成部署上传整个仓库，此文件控制哪些不公开）
-# 语法同 .gitignore；被排除的文件不会部署到线上
+# Cloudflare Pages 资产排除（⚠️ 实测对 Git 集成部署无效——已改用构建命令 tar --exclude + 输出目录 dist，见 docs/DEPLOY-RUNBOOK.md §3.3）
+# 本文件保留仅为参考/Direct Upload 场景；勿依赖其排除线上文件
 .git/
 .github/
 docs/
