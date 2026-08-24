@@ -74,7 +74,9 @@ GET /accounts/{ACC}/workers/scripts
 输出目录：dist
 ```
 
-**缓存残留**：已公开过的文件即使新部署排除，**CDN 边缘缓存仍会残留**（实测 README.md 时 404 时 200）——需 **Purge Everything**（Zone → Caching → Purge，需 zone 权限）；另有"资产保留缓存"最长一周自然过期且无法手动清除。**教训：任何内部/敏感文件一旦误部署，视为可能已公开（缓存无法强制清除），必要时轮换相关凭据**。
+**缓存残留**：已公开过的文件即使新部署排除，仍有两层残留需要区分：
+1. **CDN 边缘缓存**——`Purge Everything`（Zone → Caching → Configuration → 清除所有内容）可清除；清除后用 cache-busting 验证（`curl "https://spec-ai.cn/README.md?x=$RANDOM"` 应 404，无参直访可能仍 200）
+2. **Pages 资产保留缓存**——保留已删除资产副本，**最长一周自然过期、无法手动清除**（实测 Purge 后 README.md/APP-API.md 仍 200，BRAND-SPEC.md 已 404）；**教训：任何内部/敏感文件一旦误部署，视为可能已公开一周，必要时轮换相关凭据**
 
 **验证**（用 cache-busting 绕过边缘缓存确认真实状态）：
 ```bash
