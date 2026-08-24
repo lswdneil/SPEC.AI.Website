@@ -11,13 +11,13 @@
  *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.5.1';
+const VERSION = '0.5.2';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
 const LOGIN_FAIL_WINDOW = 600;
 const JWT_TTL = 30 * 24 * 3600; // token 30 天
-const PWD_ITER = 210000;
+const PWD_ITER = 100000;  // Workers Runtime PBKDF2 迭代上限为 100000（超过会抛错）；本地 Node 无此限制，故测试全绿而生产挂
 
 // 订阅计划（价格为占位，可按需调整；单位：分）
 const PLANS = {
