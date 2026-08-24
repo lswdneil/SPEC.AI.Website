@@ -19,7 +19,20 @@
 
 ## 跨站协作提醒（site2 云端智能体）
 
-- [ ] **提醒用户（site2 后端开发到"对账"模块时）**：site2（SPEC-云端智能体，独立仓库 `admin-dashboard/`）设计上会从 site1 账号体系**只读**拉取订阅/用户数据做付费对账（site2 侧 HANDOFF.md/README/PLAN.md 均已记录此唯一跨站数据关联）。当前 site1 生产 D1 已有 2 个注册用户（邮箱 wd_alpha@163.com + 手机号用户，双通道注册验证通过）；届时需在 site1 侧提供只读拉取渠道（现有 `/api/stats` 或用户授权的 D1 导出），**权限由用户开通**。site1 本身无需为此改动代码，等 site2 进入对账开发阶段再提醒用户衔接。
+- [ ] **提醒用户（site2 后端开发到"对账"模块时）**：site2（SPEC-云端智能体，独立仓库 `admin-dashboard/`）设计上会从 site1 账号体系**只读**拉取订阅/用户数据做付费对账（site2 侧 HANDOFF.md/README/PLAN.md 均已记录此唯一跨站数据关联）。当前 site1 生产 D1 已有 3 个注册用户（邮箱 wd_alpha@163.com + 手机号用户 + 开发者账户 dev_web，见下）；届时需在 site1 侧提供只读拉取渠道（现有 `/api/stats` 或用户授权的 D1 导出），**权限由用户开通**。site1 本身无需为此改动代码，等 site2 进入对账开发阶段再提醒用户衔接。
+
+## 生产账号与调试账户（交接信息）
+
+- **注册用户（生产 D1，3 个）**：
+  1. `wd_alpha@163.com` — 邮箱注册（邮件通道验证通过）
+  2. 手机号用户 — 短信验证码注册（阿里云短信认证通道验证通过）
+  3. `dev_web@spec-ai.cn` — 开发者调试账户（2026-08-25 插入，见下）
+- **开发者调试账户（电脑侧 App debug/联调用）**：
+  - 登录邮箱：`dev_web@spec-ai.cn`（site1 登录接口只接受合法邮箱/手机号，故用邮箱形式；纯 `dev_web` 会被 `invalid_email` 拒绝）
+  - 密码：`12345678`（8 位，满足服务端 8-128 位校验；用户原定 6 位 `123456` 不满足，已按确认改用）
+  - 计划 `free`、状态 `active`；密码哈希 PBKDF2-SHA256（100,000 迭代，与生产代码一致，插入前本地实测可登录）
+  - 插入方式：Cloudflare D1 控制台（`spec-ai-db`，id `435d3dbf-d26b-4f26-b4a3-d946250e0790`）手动执行 INSERT；已生产实测：正确密码登录 200 + token，错误密码 401
+  - 变更提示：密码/账户如需调整，直接在 D1 控制台该库执行 SQL（需重新生成 PBKDF2 哈希，格式 `b64url(salt)$b64url(hash)`，见 `_worker.js` `hashPassword`）
 
 - [x] **多语支持**：官网已支持中/英/日/韩四语切换（导航语言按钮，localStorage 记忆）；新文案需同步维护 assets/i18n/ 四语字典
 - [x] **访问统计**：✅ Cloudflare Web Analytics 已开通（自动模式，spec-ai.cn，siteTag `ca2da7376ad74236bb68bad65b62e520`）；零代码注入，Pages 开通后自动统计；入口 dash.cloudflare.com → 数据分析 → Web Analytics
