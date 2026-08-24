@@ -125,7 +125,7 @@ async function main() {
 
   console.log('— 鉴权');
   r = await call('/api/me', null, { Authorization: 'Bearer ' + token });
-  assert('带 token 取 me', r.status === 200 && r.data.user && r.data.user.plan === 'free', JSON.stringify(r.data));
+  assert('带 token 取 me', r.status === 200 && r.data.user && r.data.user.plan === 'Free', JSON.stringify(r.data));
   r = await call('/api/me');
   assert('无 token 401', r.status === 401, JSON.stringify(r.data));
   r = await call('/api/me', null, { Authorization: 'Bearer invalid.token.here' });
@@ -158,43 +158,55 @@ async function main() {
   r = await call('/api/auth/login', { method: 'phone', phone: '13800138000', code: loginCode });
   assert('验证码复用被拒', r.status !== 200, JSON.stringify(r.data));
 
-  console.log('— 计划与订阅');
+  console.log('— 计划与订阅（REQ-001 四档位）');
   r = await call('/api/plans');
   assert('plans 公开可查', r.status === 200 && r.data.ok && Array.isArray(r.data.plans), JSON.stringify(r.data));
-  const pro = (r.data.plans || []).find(function (p) { return p.id === 'pro'; });
-  assert('pro 计划价格存在', pro && pro.monthlyCents === 1990, JSON.stringify(pro));
+  assert('plans 四档', r.data.plans.length === 4, JSON.stringify(r.data.plans.map(function (p) { return p.id; })));
+  const planById = {};
+  (r.data.plans || []).forEach(function (p) { planById[p.id] = p; });
+  assert('plans 含 Free', planById.Free && planById.Free.monthlyCents === 0, JSON.stringify(planById.Free));
+  assert('Lite 价格 6990', planById.Lite && planById.Lite.monthlyCents === 6990 && planById.Lite.yearlyCents === 69900, JSON.stringify(planById.Lite));
+  assert('Pro 价格 9990', planById.Pro && planById.Pro.monthlyCents === 9990 && planById.Pro.yearlyCents === 99900, JSON.stringify(planById.Pro));
+  assert('Max 价格 19990', planById.Max && planById.Max.monthlyCents === 19990 && planById.Max.yearlyCents === 199900, JSON.stringify(planById.Max));
+  assert('days 存在', r.data.days && r.data.days.monthly === 30 && r.data.days.yearly === 365, JSON.stringify(r.data.days));
 
-  r = await call('/api/subscription/orders', { plan: 'pro', period: 'monthly' });
+  r = await call('/api/subscription/orders', { plan: 'Pro', period: 'monthly' });
   assert('下单需登录 401', r.status === 401, JSON.stringify(r.data));
 
-  r = await call('/api/subscription/orders', { plan: 'pro', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  r = await call('/api/subscription/orders', { plan: 'Pro', period: 'monthly' }, { Authorization: 'Bearer ' + token });
   assert('创建订单成功', r.status === 200 && r.data.ok && r.data.order.orderNo, JSON.stringify(r.data));
-  assert('订单金额正确', r.data.order.amountCents === 1990, JSON.stringify(r.data.order));
+  assert('订单金额正确', r.data.order.amountCents === 9990, JSON.stringify(r.data.order));
   assert('devMode 返回', r.data.devMode === true, JSON.stringify(r.data));
   const orderNo = r.data.order.orderNo;
 
-  r = await call('/api/subscription/orders', { plan: 'free', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  r = await call('/api/subscription/orders', { plan: 'Free', period: 'monthly' }, { Authorization: 'Bearer ' + token });
   assert('免费版下单被拒', r.status === 400 && r.data.error === 'plan_free', JSON.stringify(r.data));
+  r = await call('/api/subscription/orders', { plan: 'Lite', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  assert('Lite 下单成功', r.status === 200 && r.data.order.amountCents === 6990, JSON.stringify(r.data));
+  r = await call('/api/subscription/orders', { plan: 'Max', period: 'yearly' }, { Authorization: 'Bearer ' + token });
+  assert('Max 年付下单成功', r.status === 200 && r.data.order.amountCents === 199900, JSON.stringify(r.data));
+  r = await call('/api/subscription/orders', { plan: 'Hacker', period: 'monthly' }, { Authorization: 'Bearer ' + token });
+  assert('未知档位 invalid_plan', r.status === 400 && r.data.error === 'invalid_plan', JSON.stringify(r.data));
 
   r = await call('/api/subscription/orders', null, { Authorization: 'Bearer ' + token });
   assert('订单列表包含新订单', r.status === 200 && r.data.ok && r.data.orders.some(function (o) { return o.orderNo === orderNo; }), JSON.stringify(r.data));
 
   r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
-  assert('订阅初始为 free', r.status === 200 && r.data.subscription.plan === 'free', JSON.stringify(r.data));
+  assert('订阅初始为 Free', r.status === 200 && r.data.subscription.plan === 'Free', JSON.stringify(r.data));
 
   r = await call('/api/subscription/activate', { orderNo: orderNo }, { Authorization: 'Bearer ' + token });
-  assert('激活订单（dev）', r.status === 200 && r.data.ok && r.data.subscription.plan === 'pro', JSON.stringify(r.data));
+  assert('激活订单（dev）', r.status === 200 && r.data.ok && r.data.subscription.plan === 'Pro', JSON.stringify(r.data));
 
   r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
-  assert('订阅升级为 pro', r.status === 200 && r.data.subscription.plan === 'pro' && r.data.subscription.status === 'active', JSON.stringify(r.data));
+  assert('订阅升级为 Pro', r.status === 200 && r.data.subscription.plan === 'Pro' && r.data.subscription.status === 'active', JSON.stringify(r.data));
 
   r = await call('/api/payment/notify', { orderNo: orderNo });
   assert('支付回调预留 501', r.status === 501 && r.data.error === 'payment_not_configured', JSON.stringify(r.data));
 
-  console.log('— 许可与设备');
+  console.log('— 许可与设备（四档权益）');
   r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + token });
-  assert('license 检查（pro）', r.status === 200 && r.data.license.plan === 'pro', JSON.stringify(r.data));
-  assert('pro 权益（设备上限 3）', r.data.license.features.maxDevices === 3, JSON.stringify(r.data.license.features));
+  assert('license 检查（Pro）', r.status === 200 && r.data.license.plan === 'Pro', JSON.stringify(r.data));
+  assert('Pro 权益（设备上限 3）', r.data.license.features.maxDevices === 3, JSON.stringify(r.data.license.features));
 
   r = await call('/api/license/register-device', { deviceId: 'dev-a', name: 'PC' }, { Authorization: 'Bearer ' + token });
   assert('注册设备 1', r.status === 200 && r.data.allowed && r.data.devices.length === 1, JSON.stringify(r.data));
@@ -213,7 +225,7 @@ async function main() {
   assert('移除后可再绑定', r.status === 200 && r.data.devices.length === 3, JSON.stringify(r.data));
 
   r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
-  assert('free 用户 license', r.status === 200 && r.data.license.plan === 'free', JSON.stringify(r.data));
+  assert('free 用户 license', r.status === 200 && r.data.license.plan === 'Free', JSON.stringify(r.data));
   assert('free 权益（设备上限 1）', r.data.license.features.maxDevices === 1 && r.data.license.features.hardwareAccess === false, JSON.stringify(r.data.license.features));
   r = await call('/api/license/register-device', { deviceId: 'f1' }, { Authorization: 'Bearer ' + phoneToken });
   assert('free 绑定 1 台', r.status === 200 && r.data.allowed, JSON.stringify(r.data));
@@ -236,7 +248,7 @@ async function main() {
   r = await call('/api/subscription', null, { Authorization: 'Bearer ' + token });
   const beforeExp = r.data.subscription.expiresAt;
   assert('订阅有到期时间', !!beforeExp, JSON.stringify(r.data));
-  r = await call('/api/subscription/orders', { plan: 'pro', period: 'yearly' }, { Authorization: 'Bearer ' + token });
+  r = await call('/api/subscription/orders', { plan: 'Pro', period: 'yearly' }, { Authorization: 'Bearer ' + token });
   const yearlyOrder = r.data.order.orderNo;
   r = await call('/api/subscription/activate', { orderNo: yearlyOrder, period: 'monthly' }, { Authorization: 'Bearer ' + token });
   const afterExp = r.data.subscription.expiresAt;
@@ -375,6 +387,32 @@ async function main() {
   } finally {
     globalThis.fetch = realFetch;
   }
+
+  console.log('— 四档权益矩阵与存量兼容（REQ-001）');
+  // 直接改库模拟不同档位用户，验证 license 权益与 currentSubscription 归一化
+  // 说明：license/check 从 DB 读 plan（不依赖 JWT 内 plan），故复用 phoneToken 身份即可
+  async function setPlanPhone(phone, plan, expIn) {
+    const t = Math.floor(Date.now() / 1000);
+    await env.DB.prepare('UPDATE users SET plan = ?, plan_expires_at = ?, updated_at = ? WHERE phone = ?')
+      .bind(plan, expIn ? t + expIn : null, t, phone).run();
+  }
+  // Lite 用户（存量小写兼容）
+  await setPlanPhone('13800138000', 'lite', 3600);
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
+  assert('Lite 归一化（小写 lite → Lite）', r.data.license.plan === 'Lite', JSON.stringify(r.data.license));
+  assert('Lite 权益（设备上限 2 / 硬件开）', r.data.license.features.maxDevices === 2 && r.data.license.features.hardwareAccess === true && r.data.license.features.storageGb === 20, JSON.stringify(r.data.license.features));
+  // Max 用户（大写）
+  await setPlanPhone('13800138000', 'Max', 3600);
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
+  assert('Max 权益（设备上限 5 / 存储 500）', r.data.license.plan === 'Max' && r.data.license.features.maxDevices === 5 && r.data.license.features.storageGb === 500 && r.data.license.features.maxParallelTasks === 10, JSON.stringify(r.data.license.features));
+  // 过期档位 → 回落 Free
+  await setPlanPhone('13800138000', 'Max', -100);
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
+  assert('过期档位回落 Free', r.data.license.plan === 'Free' && r.data.license.features.maxDevices === 1, JSON.stringify(r.data.license));
+  // 恢复 Free 状态（手机用户原本是 free，避免污染后续）
+  await setPlanPhone('13800138000', 'Free', null);
+  r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
+  assert('恢复 Free 无到期时间', r.data.license.plan === 'Free' && r.data.license.expiresAt === null, JSON.stringify(r.data.license));
 
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});

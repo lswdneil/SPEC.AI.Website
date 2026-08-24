@@ -66,7 +66,7 @@ const REQUIRED_IDS = {
   '404.html': ['bg-canvas'],
   'login.html': ['auth-form', 'auth-submit', 'auth-send-code', 'site-nav', 'bg-canvas'],
   'account.html': ['acc-body', 'acc-logout', 'sec-change-btn', 'sec-revoke', 'sec-deactivate', 'site-nav', 'bg-canvas'],
-  'pricing.html': ['pr-subscribe', 'pr-order', 'site-nav', 'bg-canvas'],
+  'pricing.html': ['pr-order', 'site-nav', 'bg-canvas'],
   'enterprise.html': ['site-nav', 'bg-canvas'],
 };
 
@@ -103,6 +103,14 @@ test('HTML 关键挂载点存在', () => {
     for (const id of REQUIRED_IDS[f]) {
       if (!new RegExp(`id=["']${id}["']`).test(html)) errs.push(`${f}: 缺少 id="${id}"`);
     }
+  }
+  // REQ-001：定价页三档订阅按钮（Lite/Pro/Max）
+  if (exists('pricing.html')) {
+    const html = read('pricing.html');
+    for (const plan of ['Lite', 'Pro', 'Max']) {
+      if (!new RegExp(`data-plan=["']${plan}["']`).test(html)) errs.push(`pricing.html: 缺少 data-plan="${plan}" 卡片`);
+    }
+    if (!/class="[^"]*pr-subscribe[^"]*"/.test(html)) errs.push('pricing.html: 缺少 .pr-subscribe 订阅按钮');
   }
   return errs;
 });

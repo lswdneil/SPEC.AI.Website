@@ -13,7 +13,7 @@
  *           （可选，阿里云"短信认证"SendSmsVerifyCode 通道，号码认证服务 dypnsapi）。
  */
 
-const VERSION = '0.6.1';
+const VERSION = '0.7.0';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -21,18 +21,36 @@ const LOGIN_FAIL_WINDOW = 600;
 const JWT_TTL = 30 * 24 * 3600; // token 30 天
 const PWD_ITER = 100000;  // Workers Runtime PBKDF2 迭代上限为 100000（超过会抛错）；本地 Node 无此限制，故测试全绿而生产挂
 
-// 订阅计划（价格为占位，可按需调整；单位：分）
+// 订阅计划（价格为占位，可按需调整；单位：分；年付 = 月付 × 10）
 const PLANS = {
-  free: { id: 'free', monthlyCents: 0, yearlyCents: 0 },
-  pro: { id: 'pro', monthlyCents: 1990, yearlyCents: 19900 }
+  Free: { id: 'Free', monthlyCents: 0, yearlyCents: 0 },
+  Lite: { id: 'Lite', monthlyCents: 6990, yearlyCents: 69900 },
+  Pro: { id: 'Pro', monthlyCents: 9990, yearlyCents: 99900 },
+  Max: { id: 'Max', monthlyCents: 19990, yearlyCents: 199900 }
 };
 const SUBSCRIPTION_DAYS = { monthly: 30, yearly: 365 };
 
 // 各计划的权益矩阵（App 端据此解锁功能）
 const FEATURES = {
-  free: { maxParallelTasks: 1, maxDevices: 1, hardwareAccess: false, prioritySupport: false, storageGb: 2 },
-  pro: { maxParallelTasks: 5, maxDevices: 3, hardwareAccess: true, prioritySupport: true, storageGb: 100 }
+  Free: { maxParallelTasks: 1, maxDevices: 1, hardwareAccess: false, prioritySupport: false, storageGb: 2 },
+  Lite: { maxParallelTasks: 2, maxDevices: 2, hardwareAccess: true, prioritySupport: false, storageGb: 20 },
+  Pro: { maxParallelTasks: 5, maxDevices: 3, hardwareAccess: true, prioritySupport: true, storageGb: 100 },
+  Max: { maxParallelTasks: 10, maxDevices: 5, hardwareAccess: true, prioritySupport: true, storageGb: 500 }
 };
+
+// 档位归一化：兼容存量小写 free/pro 数据，统一为首字母大写 ID；未知档位返回 null（由调用方决定兜底或拒绝）
+function normalizePlan(p) {
+  if (p === 'free' || p === 'Free') return 'Free';
+  if (p === 'lite' || p === 'Lite') return 'Lite';
+  if (p === 'pro' || p === 'Pro') return 'Pro';
+  if (p === 'max' || p === 'Max') return 'Max';
+  return null;
+}
+
+// 读取展示/权益用：未知档位一律兜底 Free（存量脏数据不崩）
+function safePlan(p) {
+  return normalizePlan(p) || 'Free';
+}
 
 const SCHEMA = [
   `CREATE TABLE IF NOT EXISTS users (
@@ -548,7 +566,7 @@ function publicUser(u) {
     id: u.id,
     email: u.email || null,
     phone: u.phone || null,
-    plan: u.plan || 'free',
+    plan: safePlan(u.plan || 'Free'),
     planExpiresAt: u.plan_expires_at || null,
     hasPassword: !!u.pass_hash,
     createdAt: u.created_at
@@ -593,10 +611,11 @@ function handlePlans() {
 async function currentSubscription(env, userId) {
   const u = await env.DB.prepare('SELECT plan, plan_expires_at FROM users WHERE id = ?').bind(userId).first();
   if (!u) return null;
-  const hasPlan = u.plan && u.plan !== 'free';
+  const plan = safePlan(u.plan || 'Free');
+  const hasPlan = plan !== 'Free';
   const active = hasPlan && u.plan_expires_at && u.plan_expires_at > now();
   return {
-    plan: active ? u.plan : 'free',
+    plan: active ? plan : 'Free',
     expiresAt: active ? u.plan_expires_at : null,
     status: active ? 'active' : (hasPlan ? 'expired' : 'none')
   };
@@ -617,9 +636,9 @@ async function handleCreateOrder(request, env) {
   const user = await requireUser(request, env);
   if (!user) return fail('unauthorized', 401);
   const b = await readBody(request);
-  const planId = b.plan === 'pro' ? 'pro' : 'free';
+  const planId = normalizePlan(b.plan);
   const period = b.period === 'yearly' ? 'yearly' : 'monthly';
-  const plan = PLANS[planId];
+  const plan = planId ? PLANS[planId] : null;
   if (!plan) return fail('invalid_plan');
   const amount = period === 'yearly' ? plan.yearlyCents : plan.monthlyCents;
   if (amount <= 0) return fail('plan_free', 400); // 免费版无需下单
@@ -690,7 +709,7 @@ async function handleActivateOrder(request, env) {
 /* ---------- 许可与设备 ---------- */
 
 function planFeatures(plan) {
-  return FEATURES[plan === 'pro' ? 'pro' : 'free'];
+  return FEATURES[safePlan(plan)] || FEATURES.Free;
 }
 
 function deviceList(rows) {
@@ -906,7 +925,7 @@ async function handleRegister(request, env, ip, ua) {
   try {
     ins = await env.DB.prepare(
       'INSERT INTO users (email, phone, pass_hash, status, plan, token_version, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?)'
-    ).bind(method === 'email' ? target : null, method === 'phone' ? target : null, passHash, 'active', 'free', t, t).run();
+    ).bind(method === 'email' ? target : null, method === 'phone' ? target : null, passHash, 'active', 'Free', t, t).run();
   } catch (e) {
     // 并发注册触发唯一约束 → 归一到 409
     if (/UNIQUE/i.test(String(e.message || e))) return fail('already_registered', 409);
@@ -916,7 +935,7 @@ async function handleRegister(request, env, ip, ua) {
   const userId = ins.meta.last_row_id;
   const user = await env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first();
   await recordLogin(env, userId, 'register', target, ip, ua, true);
-  const token = await signJwt({ sub: userId, plan: 'free', tv: 0, iat: now(), exp: now() + JWT_TTL }, env);
+  const token = await signJwt({ sub: userId, plan: 'Free', tv: 0, iat: now(), exp: now() + JWT_TTL }, env);
   return ok({ token, user: publicUser(user) });
 }
 
@@ -957,7 +976,7 @@ async function handleLogin(request, env, ip, ua) {
   if (!user) return fail('account_not_registered', 404);
   if (user.status !== 'active') return fail('account_disabled', 403);
   await recordLogin(env, user.id, method, target, ip, ua, true);
-  const token = await signJwt({ sub: user.id, plan: user.plan, tv: user.token_version || 0, iat: now(), exp: now() + JWT_TTL }, env);
+  const token = await signJwt({ sub: user.id, plan: safePlan(user.plan), tv: user.token_version || 0, iat: now(), exp: now() + JWT_TTL }, env);
   return ok({ token, user: publicUser(user) });
 }
 

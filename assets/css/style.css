@@ -829,6 +829,19 @@ a { color: inherit; }
   max-width: 860px;
   margin: 0 auto;
 }
+/* 四档布局（REQ-001）：桌面四列，Pro 高亮；中屏两列，窄屏单列 */
+.plan-grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+  max-width: 1120px;
+  gap: 16px;
+}
+.plan-grid-4 .plan-card { padding: 24px 20px; }
+.plan-grid-4 .plan-card h3 { font-size: 17px; }
+.plan-grid-4 .plan-price b { font-size: 28px; }
+.plan-grid-4 .plan-feats li { font-size: 13px; margin-bottom: 8px; }
+@media (max-width: 1080px) {
+  .plan-grid-4 { grid-template-columns: repeat(2, 1fr); max-width: 860px; }
+}
 .plan-card {
   background: var(--ink-2);
   border: 1px solid var(--line-soft);

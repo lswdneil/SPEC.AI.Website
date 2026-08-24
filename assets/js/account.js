@@ -36,17 +36,23 @@
     return t(m === 'phone' ? 'acc-method-phone' : 'acc-method-email', m === 'phone' ? '手机' : '邮箱');
   }
 
+  function planLabel(p) {
+    var map = { Free: t('acc-plan-free', '免费版'), Lite: 'Lite', Pro: 'Pro', Max: 'Max' };
+    return map[p] || map.Free;
+  }
+  function planReady(p) { return p === 'Pro' || p === 'Max'; }
+
   function render(user, stats, recent, license) {
     document.getElementById('acc-email').textContent = user.email || '-';
     document.getElementById('acc-phone').textContent = user.phone || '-';
     var plan = document.getElementById('acc-plan');
-    plan.textContent = user.plan === 'pro' ? t('acc-plan-pro', 'Pro') : t('acc-plan-free', '免费版');
-    plan.className = 'status-badge ' + (user.plan === 'pro' ? 'ready' : 'eval');
+    plan.textContent = planLabel(user.plan);
+    plan.className = 'status-badge ' + (planReady(user.plan) ? 'ready' : 'eval');
     document.getElementById('acc-since').textContent = fmtTime(user.createdAt);
 
     var subPlan = document.getElementById('acc-sub-plan');
-    subPlan.textContent = user.plan === 'pro' ? t('acc-plan-pro', 'Pro') : t('acc-plan-free', '免费版');
-    subPlan.className = 'status-badge ' + (user.plan === 'pro' ? 'ready' : 'eval');
+    subPlan.textContent = planLabel(user.plan);
+    subPlan.className = 'status-badge ' + (planReady(user.plan) ? 'ready' : 'eval');
     document.getElementById('acc-sub-expires').textContent =
       user.planExpiresAt ? fmtTime(user.planExpiresAt) : t('sub-never', '免费版无到期时间');
 

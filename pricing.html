@@ -39,13 +39,13 @@
     <section class="page-hero">
       <div class="container">
         <h1 data-i18n="pr-title">定价</h1>
-        <p data-i18n="pr-sub">从免费版开始，按需升级到 Pro。</p>
+        <p data-i18n="pr-sub">从免费版开始，按需升级。</p>
       </div>
     </section>
 
     <section class="section section-tight">
       <div class="container">
-        <div class="plan-grid">
+        <div class="plan-grid plan-grid-4">
           <!-- 免费版 -->
           <div class="plan-card reveal">
             <h3 data-i18n="pr-plan-free">免费版</h3>
@@ -59,23 +59,58 @@
             <a href="download.html" class="btn btn-ghost-dark" data-i18n="pr-cta-free">开始使用</a>
           </div>
 
+          <!-- Lite -->
+          <div class="plan-card reveal" data-plan="Lite">
+            <h3 data-i18n="pr-plan-lite">Lite</h3>
+            <div class="plan-period">
+              <button type="button" class="plan-period-btn active" data-period="monthly" data-i18n="pr-monthly">月付</button>
+              <button type="button" class="plan-period-btn" data-period="yearly" data-i18n="pr-yearly">年付</button>
+            </div>
+            <div class="plan-price"><b id="pr-price-Lite">-</b><span data-i18n="pr-per-month">/ 月</span></div>
+            <p class="plan-desc" data-i18n="pr-lite-desc">轻量付费档，进阶基础功能。</p>
+            <ul class="plan-feats">
+              <li data-i18n="pr-f-lite-1">免费版全部功能</li>
+              <li data-i18n="pr-f-lite-2">双设备同时登录</li>
+              <li data-i18n="pr-f-lite-3">硬件接入能力</li>
+            </ul>
+            <button type="button" class="btn btn-ghost-dark pr-subscribe" data-plan="Lite" data-i18n="pr-cta-lite">订阅 Lite</button>
+          </div>
+
           <!-- Pro -->
-          <div class="plan-card plan-card-pro reveal">
+          <div class="plan-card plan-card-pro reveal" data-plan="Pro">
             <h3 data-i18n="pr-plan-pro">Pro</h3>
             <div class="plan-period">
               <button type="button" class="plan-period-btn active" data-period="monthly" data-i18n="pr-monthly">月付</button>
               <button type="button" class="plan-period-btn" data-period="yearly" data-i18n="pr-yearly">年付</button>
             </div>
-            <div class="plan-price"><b id="pr-price">-</b><span data-i18n="pr-per-month">/ 月</span></div>
+            <div class="plan-price"><b id="pr-price-Pro">-</b><span data-i18n="pr-per-month">/ 月</span></div>
             <p class="plan-desc" data-i18n="pr-pro-desc">为重度使用者解锁全部能力。</p>
             <ul class="plan-feats">
-              <li data-i18n="pr-f-pro-1">全部免费版功能</li>
-              <li data-i18n="pr-f-pro-2">多设备同时登录</li>
+              <li data-i18n="pr-f-pro-1">全部 Lite 功能</li>
+              <li data-i18n="pr-f-pro-2">三设备同时登录</li>
               <li data-i18n="pr-f-pro-3">优先响应</li>
-              <li data-i18n="pr-f-pro-4">硬件接入与扩展能力</li>
+              <li data-i18n="pr-f-pro-4">100GB 存储</li>
               <li data-i18n="pr-f-pro-5">专属支持</li>
             </ul>
-            <button type="button" id="pr-subscribe" class="btn btn-primary" data-i18n="pr-cta-pro">订阅 Pro</button>
+            <button type="button" class="btn btn-primary pr-subscribe" data-plan="Pro" data-i18n="pr-cta-pro">订阅 Pro</button>
+          </div>
+
+          <!-- Max -->
+          <div class="plan-card reveal" data-plan="Max">
+            <h3 data-i18n="pr-plan-max">Max</h3>
+            <div class="plan-period">
+              <button type="button" class="plan-period-btn active" data-period="monthly" data-i18n="pr-monthly">月付</button>
+              <button type="button" class="plan-period-btn" data-period="yearly" data-i18n="pr-yearly">年付</button>
+            </div>
+            <div class="plan-price"><b id="pr-price-Max">-</b><span data-i18n="pr-per-month">/ 月</span></div>
+            <p class="plan-desc" data-i18n="pr-max-desc">旗舰档，全功能满配。</p>
+            <ul class="plan-feats">
+              <li data-i18n="pr-f-max-1">全部 Pro 功能</li>
+              <li data-i18n="pr-f-max-2">五设备同时登录</li>
+              <li data-i18n="pr-f-max-3">500GB 存储</li>
+              <li data-i18n="pr-f-max-4">最高并行任务</li>
+            </ul>
+            <button type="button" class="btn btn-ghost-dark pr-subscribe" data-plan="Max" data-i18n="pr-cta-max">订阅 Max</button>
           </div>
         </div>
 

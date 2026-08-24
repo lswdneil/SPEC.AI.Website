@@ -1,7 +1,7 @@
-# 1号员工 官网后端 API 对接文档（App 端）
+﻿# 1号员工 官网后端 API 对接文档（App 端）
 
 > 适用对象：1号员工 桌面端（Electron）开发。
-> 版本：API v0.6.1 · 更新：2026-08-25（v0.6.1：修复 CORS 预检 OPTIONS 返回 500 —— 204 null-body 状态码误带 JSON body，改为无 body 204 + 补 Max-Age，浏览器/Electron 全链路预检恢复；接口协议无变化）
+> 版本：API v0.7.0 · 更新：2026-08-25（v0.7.0：订阅档位扩展为 Free/Lite/Pro/Max 四档（REQ-001）——plans/权益矩阵/下单支持新档位，档位 ID 首字母大写并兼容存量小写；Pro 调价 ¥19.9→¥99.9；接口协议字段不变）
 > 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
 
 ---
@@ -96,7 +96,7 @@ POST /api/auth/register
 {
   "ok": true,
   "token": "<JWT>",
-  "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "free", "planExpiresAt": null, "hasPassword": true, "createdAt": 1756000000 }
+  "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "Free", "planExpiresAt": null, "hasPassword": true, "createdAt": 1756000000 }
 }
 ```
 
@@ -128,7 +128,7 @@ Authorization: Bearer <token>
 响应 `200`：
 
 ```json
-{ "ok": true, "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "free", "planExpiresAt": null, "createdAt": 1756000000 } }
+{ "ok": true, "user": { "id": 1, "email": "user@example.com", "phone": null, "plan": "Free", "planExpiresAt": null, "createdAt": 1756000000 } }
 ```
 
 > 用途：启动时校验 token 是否有效；401 即失效。
@@ -198,12 +198,16 @@ GET /api/plans
 {
   "ok": true,
   "plans": [
-    { "id": "free", "monthlyCents": 0, "yearlyCents": 0 },
-    { "id": "pro", "monthlyCents": 1990, "yearlyCents": 19900 }
+    { "id": "Free", "monthlyCents": 0, "yearlyCents": 0 },
+    { "id": "Lite", "monthlyCents": 6990, "yearlyCents": 69900 },
+    { "id": "Pro", "monthlyCents": 9990, "yearlyCents": 99900 },
+    { "id": "Max", "monthlyCents": 19990, "yearlyCents": 199900 }
   ],
   "days": { "monthly": 30, "yearly": 365 }
 }
 ```
+
+> 档位 ID 首字母大写（`Free/Lite/Pro/Max`，REQ-001）。**存量兼容**：历史小写 `free/pro` 数据在响应中自动归一化为 `Free/Pro`。**价格**：年付 = 月付 × 10（Pro 自 2026-08-25 起 ¥19.9 → ¥99.9）。
 
 ### 4.2 当前订阅状态
 
@@ -215,7 +219,7 @@ Authorization: Bearer <token>
 响应 `200`：
 
 ```json
-{ "ok": true, "subscription": { "plan": "free", "expiresAt": null, "status": "none" } }
+{ "ok": true, "subscription": { "plan": "Free", "expiresAt": null, "status": "none" } }
 ```
 
 `status`：`active`（生效中）/ `expired`（已过期）/ `none`（从未订阅）。
@@ -227,18 +231,20 @@ POST /api/subscription/orders
 Authorization: Bearer <token>
 ```
 
-请求体：`{ "plan": "pro", "period": "monthly" }`（`period`: `monthly` | `yearly`）
+请求体：`{ "plan": "Pro", "period": "monthly" }`（`plan`: `Lite` | `Pro` | `Max`；`period`: `monthly` | `yearly`）
 
 响应 `200`：
 
 ```json
 {
   "ok": true,
-  "order": { "orderNo": "SAXXXXXXXX", "plan": "pro", "period": "monthly", "amountCents": 1990, "currency": "CNY", "status": "pending", "createdAt": 1756010000 },
+  "order": { "orderNo": "SAXXXXXXXX", "plan": "Pro", "period": "monthly", "amountCents": 9990, "currency": "CNY", "status": "pending", "createdAt": 1756010000 },
   "payment": { "provider": null, "status": "pending_integration", "message": "payment_channel_pending" },
   "devMode": false
 }
 ```
+
+> 免费档（`Free`）下单返回 `plan_free`(400)；未知档位返回 `invalid_plan`(400)。存量小写 `pro/free` 也可下单（自动归一化）。
 
 > ⚠️ 当前为**订阅框架预留阶段**（决策 1-C）：`payment.provider` 为 null，支付通道未接入。`devMode=true` 时（联调环境）可调用 4.5 激活订单走通链路。
 
@@ -255,7 +261,7 @@ Authorization: Bearer <token>
 {
   "ok": true,
   "orders": [
-    { "orderNo": "SAXXXXXXXX", "plan": "pro", "amountCents": 1990, "currency": "CNY", "status": "pending", "provider": null, "createdAt": 1756010000, "paidAt": null }
+    { "orderNo": "SAXXXXXXXX", "plan": "Pro", "amountCents": 9990, "currency": "CNY", "status": "pending", "provider": null, "createdAt": 1756010000, "paidAt": null }
   ]
 }
 ```
@@ -275,7 +281,7 @@ Authorization: Bearer <token>
 响应 `200`：
 
 ```json
-{ "ok": true, "subscription": { "plan": "pro", "expiresAt": 1758610000, "status": "active" }, "orderNo": "SAXXXXXXXX" }
+{ "ok": true, "subscription": { "plan": "Pro", "expiresAt": 1758610000, "status": "active" }, "orderNo": "SAXXXXXXXX" }
 ```
 
 ### 4.6 支付回调（预留）
@@ -304,7 +310,7 @@ Authorization: Bearer <token>
 {
   "ok": true,
   "license": {
-    "plan": "pro",
+    "plan": "Pro",
     "status": "active",
     "expiresAt": 1758610000,
     "features": {
@@ -321,19 +327,20 @@ Authorization: Bearer <token>
 }
 ```
 
-权益矩阵（`features`，服务端按订阅计划返回）：
+权益矩阵（`features`，服务端按订阅计划返回；档位 ID 首字母大写，REQ-001）：
 
-| 特性 | free | pro |
-|---|---|---|
-| `maxParallelTasks` 并行任务数 | 1 | 5 |
-| `maxDevices` 设备上限 | 1 | 3 |
-| `hardwareAccess` 硬件接入 | false | true |
-| `prioritySupport` 优先响应 | false | true |
-| `storageGb` 存储配额(GB) | 2 | 100 |
+| 特性 | Free | Lite | Pro | Max |
+|---|---|---|---|---|
+| `maxParallelTasks` 并行任务数 | 1 | 2 | 5 | 10 |
+| `maxDevices` 设备上限 | 1 | 2 | 3 | 5 |
+| `hardwareAccess` 硬件接入 | false | true | true | true |
+| `prioritySupport` 优先响应 | false | false | true | true |
+| `storageGb` 存储配额(GB) | 2 | 20 | 100 | 500 |
 
 **App 端建议**：
 - 启动时调用本接口获取 `features` 并缓存（本地持久化），离线时按缓存执行。
-- 订阅过期后 `license.status` 变 `expired`、`plan` 回退 `free`——客户端应据此降级功能并提示续费。
+- 订阅过期后 `license.status` 变 `expired`、`plan` 回退 `Free`——客户端应据此降级功能并提示续费。
+- **动态渲染**：档位列表以 `/api/plans` 返回为准，勿硬编码档位（REQ-001 兼容性要求）。
 
 ### 5.2 注册/更新设备
 
@@ -402,7 +409,7 @@ POST /api/license/check
 ### 6.4 订阅升级（当前框架阶段）
 
 ```
-用户点击订阅 → POST /api/subscription/orders {plan:"pro", period:"monthly"}
+用户点击订阅 → POST /api/subscription/orders {plan:"Pro", period:"monthly"}
   → 展示订单（金额/订单号）+ "支付渠道接入中"提示
   → 支付通道上线后：跳转收银台 → 服务端回调 /api/payment/notify 落单 → 客户端轮询
      GET /api/subscription 直到 status=active
