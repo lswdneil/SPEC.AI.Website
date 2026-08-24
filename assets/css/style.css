@@ -709,16 +709,23 @@ a { color: inherit; }
   border-radius: 10px;
   color: var(--text-primary);
   font-size: 15px;
-  padding: 11px 14px;
+  height: 44px;
+  padding: 0 14px;
   outline: none;
   transition: border-color 0.18s ease;
 }
 .auth-field input:focus { border-color: rgba(194, 91, 67, 0.55); }
 .auth-field input::placeholder { color: var(--text-muted); }
-.auth-code-row { display: flex; gap: 10px; }
+.auth-code-row { display: flex; gap: 10px; align-items: stretch; }
 .auth-code-row input { flex: 1; min-width: 0; }
-.auth-code-row .btn { white-space: nowrap; }
-#auth-submit { width: 100%; margin-top: 6px; }
+.auth-code-row .btn {
+  white-space: nowrap;
+  height: 44px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 700;
+}
+#auth-submit { width: 100%; margin-top: 6px; height: 44px; padding: 0 30px; font-size: 15px; }
 .auth-msg {
   min-height: 20px;
   margin-top: 14px;
@@ -794,6 +801,16 @@ a { color: inherit; }
 .acc-actions { margin-top: 22px; }
 .acc-sec { margin-bottom: 18px; }
 .acc-sec-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 6px; }
+/* 账户中心表单按钮与输入框同高（44px，与 .auth-field input 一致） */
+.acc-sec .btn,
+.acc-sec-actions .btn,
+.acc-bind-form .btn:not(.btn-sm),
+#sec-deact-form .btn {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+}
 .btn-danger {
   background: transparent;
   border: 1px solid rgba(224, 96, 90, 0.5);
