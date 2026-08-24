@@ -160,6 +160,13 @@ a { color: inherit; }
   transition: border-color 0.18s ease, background 0.18s ease;
 }
 .nav-gh:hover { border-color: var(--accent); background: rgba(194, 91, 67, 0.12); }
+/* 登录后导航显示账号邮箱：长邮箱截断省略号，不撑破导航 */
+.nav-auth-name {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* 品牌底色按钮（物理接入） */
 .nav-gh-brand {
@@ -297,12 +304,13 @@ a { color: inherit; }
 .hero-soon-item svg { flex: none; }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   font-size: 16px; font-weight: 700;
   padding: 14px 30px; border-radius: var(--radius);
   text-decoration: none; cursor: pointer; border: none;
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
+.btn-sm { font-size: 13.5px; padding: 7px 16px; border-radius: 8px; }
 .btn:active { transform: translateY(1px); }
 
 .btn-primary { background: var(--accent); color: #fff; }
@@ -759,6 +767,8 @@ a { color: inherit; }
 }
 .acc-row dt { color: var(--text-secondary); }
 .acc-row dd { color: var(--text-primary); margin: 0; text-align: right; word-break: break-all; }
+.acc-phone-cell { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.acc-bind-form { margin-top: 4px; }
 .acc-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .acc-stat {
   background: var(--ink);

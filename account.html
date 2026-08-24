@@ -55,7 +55,24 @@
               <h2 class="acc-block-title" data-i18n="acc-profile">账号资料</h2>
               <dl class="acc-rows">
                 <div class="acc-row"><dt data-i18n="acc-email">邮箱</dt><dd id="acc-email">-</dd></div>
-                <div class="acc-row"><dt data-i18n="acc-phone">手机号</dt><dd id="acc-phone">-</dd></div>
+                <div class="acc-row"><dt data-i18n="acc-phone">手机号</dt><dd class="acc-phone-cell"><span id="acc-phone">-</span><button type="button" id="acc-bind-phone" class="btn btn-ghost-dark btn-sm" data-i18n="acc-bind-phone">添加手机号</button></dd></div>
+                <div id="acc-bind-form" class="acc-bind-form acc-sec" hidden>
+                  <div class="auth-field">
+                    <label for="bind-phone" data-i18n="acc-bind-phone-ph">手机号</label>
+                    <input id="bind-phone" type="tel" inputmode="numeric" maxlength="11" autocomplete="tel" placeholder="1xxxxxxxxxx">
+                  </div>
+                  <div class="auth-field">
+                    <div class="auth-code-row">
+                      <input id="bind-code" type="text" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="6 位验证码">
+                      <button type="button" id="bind-send" class="btn btn-ghost-dark" data-i18n="auth-send-code">获取验证码</button>
+                    </div>
+                  </div>
+                  <div class="acc-sec-actions">
+                    <button type="button" id="bind-confirm" class="btn btn-primary" data-i18n="acc-bind-confirm">确认绑定</button>
+                    <button type="button" id="bind-cancel" class="btn btn-ghost-dark" data-i18n="acc-bind-cancel">取消</button>
+                  </div>
+                  <p class="auth-msg" id="bind-msg"></p>
+                </div>
                 <div class="acc-row"><dt data-i18n="acc-plan">订阅计划</dt><dd><span id="acc-plan" class="status-badge">-</span></dd></div>
                 <div class="acc-row"><dt data-i18n="acc-member-since">注册时间</dt><dd id="acc-since">-</dd></div>
               </dl>

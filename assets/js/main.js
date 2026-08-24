@@ -338,16 +338,21 @@
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
-  /* ---------- 导航登录状态（登录后显示"账户"） ---------- */
+  /* ---------- 导航登录状态（登录后显示账号邮箱/手机号，点击进账户中心） ---------- */
   function initAuthNav() {
     var link = $(".nav-auth");
     if (!link) return;
     var token = "";
     try { token = localStorage.getItem("specai_token") || ""; } catch (e) { /* ignore */ }
     if (token) {
-      link.setAttribute("data-i18n", "nav-account");
+      var u = null;
+      try { u = JSON.parse(localStorage.getItem("specai_user") || "null"); } catch (e) { /* ignore */ }
+      var label = (u && (u.email || u.phone)) ? (u.email || u.phone) : t("nav-account", "账户");
+      link.removeAttribute("data-i18n"); // 避免 applyI18n 覆盖账号信息
       link.href = "account.html";
-      link.textContent = t("nav-account", "账户");
+      link.textContent = label;
+      link.title = label;
+      link.classList.add("nav-auth-name");
     } else {
       link.setAttribute("data-i18n", "nav-login");
       link.href = "login.html";

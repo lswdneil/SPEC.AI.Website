@@ -129,6 +129,56 @@
     setTimeout(function () { window.location.href = url; }, ms || 1200);
   }
 
+  /* 绑定/更换手机号（多重账户验证：邮箱 + 手机双身份可登录） */
+  function initBindPhone(user) {
+    var btn = document.getElementById('acc-bind-phone');
+    var form = document.getElementById('acc-bind-form');
+    var msg = document.getElementById('bind-msg');
+    var phoneEl = document.getElementById('acc-phone');
+    if (!btn || !form) return;
+    if (user.phone) btn.textContent = t('acc-bind-change', '更换手机号');
+
+    function setMsg(text, type) {
+      msg.textContent = text || '';
+      msg.className = 'auth-msg' + (type ? ' ' + type : '');
+    }
+    function validPhone(p) { return /^1[3-9]\d{9}$/.test(p); }
+
+    btn.addEventListener('click', function () { form.hidden = !form.hidden; setMsg(''); });
+    document.getElementById('bind-cancel').addEventListener('click', function () { form.hidden = true; setMsg(''); });
+
+    document.getElementById('bind-send').addEventListener('click', function () {
+      var p = document.getElementById('bind-phone').value.trim();
+      if (!validPhone(p)) { setMsg(t('auth-err-invalid', '格式不正确'), 'error'); return; }
+      apiPost('/api/auth/send-code', { target: p, purpose: 'bind' })
+        .then(function (r) {
+          setMsg(r.status === 200 && r.data.ok ? t('auth-msg-sent', '验证码已发送') : secErrorText(r.data.error),
+            r.status === 200 ? 'ok' : 'error');
+        })
+        .catch(function () { setMsg(t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+
+    document.getElementById('bind-confirm').addEventListener('click', function () {
+      var p = document.getElementById('bind-phone').value.trim();
+      var c = document.getElementById('bind-code').value.trim();
+      if (!validPhone(p)) { setMsg(t('auth-err-invalid', '格式不正确'), 'error'); return; }
+      if (!c) { setMsg(t('auth-err-code-required', '请填写验证码'), 'error'); return; }
+      apiPost('/api/auth/bind', { method: 'phone', phone: p, code: c })
+        .then(function (r) {
+          if (r.status === 200 && r.data.ok) {
+            phoneEl.textContent = p;
+            try { localStorage.setItem('specai_user', JSON.stringify(r.data.user || {})); } catch (e) { /* ignore */ }
+            btn.textContent = t('acc-bind-change', '更换手机号');
+            form.hidden = true;
+            setMsg(t('acc-bind-ok', '绑定成功'), 'ok');
+          } else {
+            setMsg(secErrorText(r.data.error), 'error');
+          }
+        })
+        .catch(function () { setMsg(t('auth-err-net', '网络异常，请稍后再试'), 'error'); });
+    });
+  }
+
   function initSecurity(user) {
     var changeBox = document.getElementById('sec-change');
     var noPwHint = document.getElementById('sec-no-password');
@@ -234,6 +284,7 @@
       body.hidden = false;
       render(me.data.user, statsData, recent, licData);
       initSecurity(me.data.user);
+      initBindPhone(me.data.user);
     }).catch(function () {
       loading.textContent = t('acc-err-net', '网络异常，请稍后再试');
     });
