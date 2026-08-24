@@ -279,9 +279,13 @@ async function aliyunHmacSha1(secret, data) {
 }
 
 // 短信认证模板映射（赠送模板；允许按场景覆盖）
+// 优先级：场景专用 env（ALIYUN_SMS_TEMPLATE_RESET/BIND）> 通用 env（ALIYUN_SMS_TEMPLATE，仅注册/登录）> 内置映射
 function smsTemplateFor(env, purpose) {
   const map = { register: '100001', login: '100001', reset: '100003', bind: '100004' };
-  return env['ALIYUN_SMS_TEMPLATE_' + purpose.toUpperCase()] || map[purpose] || env.ALIYUN_SMS_TEMPLATE || '100001';
+  const specific = env['ALIYUN_SMS_TEMPLATE_' + purpose.toUpperCase()];
+  if (specific) return specific;
+  if (purpose === 'register' || purpose === 'login') return env.ALIYUN_SMS_TEMPLATE || map[purpose] || '100001';
+  return map[purpose] || env.ALIYUN_SMS_TEMPLATE || '100001';
 }
 
 // 发送短信验证码（阿里云号码认证服务 dypnsapi.aliyuncs.com，Action=SendSmsVerifyCode）

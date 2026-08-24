@@ -314,6 +314,10 @@ async function main() {
   assert('模板 register=100001', smsTemplateFor(akEnv, 'register') === '100001');
   assert('模板 reset=100003', smsTemplateFor(akEnv, 'reset') === '100003');
   assert('模板 bind=100004', smsTemplateFor(akEnv, 'bind') === '100004');
+  // 通用 env 对 register/login 生效，但不覆盖 reset/bind 专用模板
+  assert('通用 env 生效于 register', smsTemplateFor({ ALIYUN_SMS_TEMPLATE: '19999' }, 'register') === '19999');
+  assert('通用 env 不覆盖 reset', smsTemplateFor({ ALIYUN_SMS_TEMPLATE: '19999' }, 'reset') === '100003');
+  assert('场景专用 env 优先', smsTemplateFor({ ALIYUN_SMS_TEMPLATE: '19999', ALIYUN_SMS_TEMPLATE_RESET: '18888' }, 'reset') === '18888');
   // sendSmsAliyun 成功路径（mock fetch）
   let smsSent = null;
   const realFetch = globalThis.fetch;
