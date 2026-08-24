@@ -19,7 +19,7 @@
 
 - [x] **多语支持**：官网已支持中/英/日/韩四语切换（导航语言按钮，localStorage 记忆）；新文案需同步维护 assets/i18n/ 四语字典
 - [x] **访问统计**：✅ Cloudflare Web Analytics 已开通（自动模式，spec-ai.cn，siteTag `ca2da7376ad74236bb68bad65b62e520`）；零代码注入，Pages 开通后自动统计；入口 dash.cloudflare.com → 数据分析 → Web Analytics
-- [x] **短信验证码通道（阿里云"短信认证"）**：✅ 已接入（2026-08-25，API v0.6.0）— 服务已开通（dypns.console.aliyun.com，赠送签名"恒创联众"+ 模板 100001/100003/100004）；RAM 子账号 `spec-ai-sms` 已创建并授权 `AliyunDypnsFullAccess`（账号级）；AccessKey 已配置到 Cloudflare 生产环境变量（`ALIYUN_AK_ID`/`ALIYUN_AK_SECRET` secret、`ALIYUN_SMS_SIGN`/`ALIYUN_SMS_TEMPLATE` plain）；`_worker.js` 新增 `sendSmsAliyun`（RPC 签名 HMAC-SHA1，dypnsapi.aliyuncs.com）并接入 `sendCode` 短信分支（阿里云优先、`SMS_WEBHOOK_URL` 回退）；单测新增 11 项断言（官方示例签名、编码、模板映射、成功/失败/投递路径），门禁 11/11 全绿；**推送部署待用户授权**（本改动 commit 在本地，尚未 push）
+- [x] **短信验证码通道（阿里云"短信认证"）**：✅ 已上线（2026-08-25，API v0.6.0）— 服务已开通（dypns.console.aliyun.com，赠送签名"恒创联众"+ 模板 100001/100003/100004）；RAM 子账号 `spec-ai-sms` 已创建并授权 `AliyunDypnsFullAccess`（账号级）；AccessKey 已配置到 Cloudflare 生产环境变量（`ALIYUN_AK_ID`/`ALIYUN_AK_SECRET` secret、`ALIYUN_SMS_SIGN`/`ALIYUN_SMS_TEMPLATE` plain）；`_worker.js` 新增 `sendSmsAliyun`（RPC 签名 HMAC-SHA1，dypnsapi.aliyuncs.com）并接入 `sendCode` 短信分支（阿里云优先、`SMS_WEBHOOK_URL` 回退）；模板优先级已修正（通用 env 对注册/登录生效、不覆盖重置/绑定专用模板）；单测 92/92、门禁 11/11 全绿；**已推送部署**（commit `df736e1`+`125b336`，部署 47193a97 success，生产 API v0.6.0 生效，env 全部注入）——⚠️ **待实测**：手机号真实收码确认赠送模板变量名（${code}/${min}）
 
 ## 给产品端的提醒（不代改，仅提醒）
 
