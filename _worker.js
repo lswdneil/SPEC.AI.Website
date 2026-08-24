@@ -13,7 +13,7 @@
  *           （可选，阿里云"短信认证"SendSmsVerifyCode 通道，号码认证服务 dypnsapi）。
  */
 
-const VERSION = '0.6.0';
+const VERSION = '0.6.1';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -445,7 +445,18 @@ async function requireUser(request, env) {
 /* ---------- 接口路由 ---------- */
 
 async function handleApi(request, env, ctx, path) {
-  if (request.method === 'OPTIONS') return json({ ok: true }, 204);
+  // CORS 预检：204 属 null-body 状态码，不能带 body（此前误用 json() 导致 500，见 BUG-001）
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400',
+      }
+    });
+  }
 
   const method = request.method;
   const ip = clientIp(request);

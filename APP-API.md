@@ -1,7 +1,7 @@
 # 1号员工 官网后端 API 对接文档（App 端）
 
 > 适用对象：1号员工 桌面端（Electron）开发。
-> 版本：API v0.6.0 · 更新：2026-08-25（v0.6.0：新增阿里云"短信认证"手机验证码通道，SendSmsVerifyCode 接入，`send-code` 对手机号目标自动走短信；接口协议无变化）
+> 版本：API v0.6.1 · 更新：2026-08-25（v0.6.1：修复 CORS 预检 OPTIONS 返回 500 —— 204 null-body 状态码误带 JSON body，改为无 body 204 + 补 Max-Age，浏览器/Electron 全链路预检恢复；接口协议无变化）
 > 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
 
 ---

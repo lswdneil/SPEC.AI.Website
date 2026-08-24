@@ -78,6 +78,22 @@ async function main() {
     return { status: res.status, data };
   }
 
+  console.log('— CORS 预检（BUG-001 回归）');
+  const preflight = await worker.fetch(new Request('https://spec-ai.cn/api/auth/login', {
+    method: 'OPTIONS',
+    headers: {
+      'Origin': 'http://localhost:5174',
+      'Access-Control-Request-Method': 'POST',
+      'Access-Control-Request-Headers': 'content-type'
+    }
+  }), env, {});
+  const preBody = await preflight.text();
+  assert('预检 204 无 body', preflight.status === 204 && preBody === '', `status=${preflight.status} body=${preBody.length}B`);
+  assert('预检 CORS 头', preflight.headers.get('Access-Control-Allow-Origin') === '*'
+    && (preflight.headers.get('Access-Control-Allow-Methods') || '').includes('POST')
+    && (preflight.headers.get('Access-Control-Allow-Headers') || '').includes('Authorization'), 'CORS 头缺失');
+  assert('预检 Max-Age 缓存', preflight.headers.get('Access-Control-Max-Age') === '86400', String(preflight.headers.get('Access-Control-Max-Age')));
+
   console.log('— 健康检查');
   let r = await call('/api/health');
   assert('health ok', r.status === 200 && r.data.ok && r.data.db === 'ok', JSON.stringify(r.data));
