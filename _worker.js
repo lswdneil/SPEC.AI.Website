@@ -11,7 +11,7 @@
  *           RESEND_API_KEY（可选，邮箱验证码发送通道）。
  */
 
-const VERSION = '0.5.0';
+const VERSION = '0.5.1';
 const CODE_TTL = 600;          // 验证码有效期 10 分钟
 const CODE_MAX_SEND = 5;       // 每目标每小时最多发码次数
 const LOGIN_FAIL_LIMIT = 5;    // 10 分钟内失败次数上限
@@ -670,7 +670,6 @@ async function handleRemoveDevice(request, env) {
 
 async function handleHealth(env) {
   try {
-    await ensureSchema(env);
     const r = await env.DB.prepare('SELECT COUNT(*) AS n FROM users').first();
     return ok({ service: 'spec-ai-api', version: VERSION, db: 'ok', users: r ? r.n : 0, time: now() });
   } catch (e) {
@@ -691,7 +690,6 @@ async function handleSendCode(request, env) {
 }
 
 async function handleResetPassword(request, env) {
-  await ensureSchema(env);
   const b = await readBody(request);
   const email = String(b.email || '').trim().toLowerCase();
   const code = String(b.code || '');
@@ -779,7 +777,6 @@ async function handleBind(request, env) {
 }
 
 async function handleRegister(request, env, ip, ua) {
-  await ensureSchema(env);
   const b = await readBody(request);
   const method = b.method === 'phone' ? 'phone' : 'email';
   const email = method === 'email' ? String(b.email || '').trim().toLowerCase() : null;
@@ -827,7 +824,6 @@ async function handleRegister(request, env, ip, ua) {
 }
 
 async function handleLogin(request, env, ip, ua) {
-  await ensureSchema(env);
   const b = await readBody(request);
   const method = b.method === 'phone' ? 'phone' : 'email';
   const email = method === 'email' ? String(b.email || '').trim().toLowerCase() : null;
@@ -876,6 +872,8 @@ export default {
     const path = url.pathname;
     try {
       if (path.startsWith('/api/')) {
+        // 统一建表入口（幂等，schemaReady 缓存；消除各 handler 漏调 ensureSchema 导致空库 500 的整类问题）
+        await ensureSchema(env);
         return await handleApi(request, env, ctx, path);
       }
       return env.ASSETS.fetch(request);
