@@ -4,7 +4,7 @@
 品牌体系遵循已拍板的 **D+B** 方案：DeepSeek 质感打底 + **红褐品牌锚点**（`#a8432e` 亮 / `#c25b43` 暗，呼应 App 图标红 `#842018`），中性蓝灰底（亮 `#f7f8fa` / 暗 `#101216`），信息蓝 `#4176e6` 仅用于 info 类。
 
 - 零依赖纯静态站：HTML + CSS + 原生 JS，无需构建工具
-- 托管于 **Cloudflare Pages**（免费、全球 CDN、自动 HTTPS、Direct Upload 部署）
+- 托管于 **Cloudflare Pages**（免费、全球 CDN、自动 HTTPS、Git 集成部署：push 即发布）
 - 安装包主下载走 **阿里云 OSS**（国内直连加速），GitHub Releases 作海外备用
 - 下载数据集中在 `data/releases.json`，发版只需改一个文件
 - 附带 GitHub Actions 三平台自动构建发布工作流
@@ -29,7 +29,7 @@ software-download-site/
 │   ├── css/style.css    # D+B 品牌令牌与样式
 │   └── js/main.js       # 平台识别 / 动态渲染 / 复制校验值
 ├── scripts/
-│   └── deploy.py        # ★ Cloudflare Pages 部署脚本（Direct Upload API）
+│   └── deploy.py        # ⚠️ Direct Upload 部署脚本（平台 bug 已弃用，改 Git 集成；保留仅作 API 参考）
 ├── .github/workflows/
 │   └── release.yml      # ★ 桌面应用的自动发布工作流（放软件仓库）
 ├── vercel.json          # Vercel 遗留配置（Cloudflare 下无作用，可删除）
@@ -45,14 +45,15 @@ software-download-site/
    - `sha256` → 安装包真实校验值（本地 `certutil -hashfile 文件 SHA256` 或 `sha256sum 文件`）
    - `changelog` → 版本历史
 3. 本地预览：`python -m http.server 8080` → 打开 `http://localhost:8080`。
-4. 部署：设置 `CLOUDFLARE_API_TOKEN`（Pages 权限）后运行 `python scripts/deploy.py`，自动上传全部静态文件到 Cloudflare Pages；也可在控制台 Workers & Pages → 创建项目 → **Direct Upload** 手动拖拽。
-5. 绑定域名：`spec-ai.cn` 的 zone 已在 Cloudflare（NS：`merlin.ns.cloudflare.com` / `reza.ns.cloudflare.com`），在 Pages 项目 Custom domains 中添加 `spec-ai.cn` 与 `www.spec-ai.cn`，Cloudflare 会自动创建 CNAME 指向 `spec-ai-website.pages.dev`。
+4. 部署（**Git 集成**，推荐）：本仓库已连接到 Cloudflare Pages 项目 `spec-ai-website-git`（GitHub `lswdneil/SPEC.AI.Website`），**push 到 main 即自动构建部署**，无需本地脚本。
+   - ⚠️ **不要用 Direct Upload 部署**（`scripts/deploy.py`）：Cloudflare 存在 Direct Upload 路径平台 bug（2026-07 起多起案例，部署记录成功但永不 serving、子 URL 全 404）。Git 集成部署已验证正常。
+5. 绑定域名：`spec-ai.cn` 的 zone 已在 Cloudflare（NS：`merlin.ns.cloudflare.com` / `reza.ns.cloudflare.com`），Pages 项目 `spec-ai-website-git` 的 Custom domains 已绑定 `spec-ai.cn` 与 `www.spec-ai.cn`，CNAME 指向 `spec-ai-website-git.pages.dev`（已生效，https 200）。
 
 > 品牌信息如需微调（颜色、文案、logo），改动集中在 `assets/css/style.css` 顶部令牌、三个 HTML 与 `releases.json`。
 
 ## 发布新版本
 
-**手动**：打 tag 发布 GitHub Release → 复制安装包直链 → 更新 `releases.json` → push → 运行 `python scripts/deploy.py` 重新部署。
+**手动**：打 tag 发布 GitHub Release → 复制安装包直链 → 更新 `releases.json` → push（Git 集成自动重新部署）。
 
 **全自动**：把 `.github/workflows/release.yml` 复制到 1号员工 **软件源码仓库**（`github.com/lswdneil/Digital-AI-Employee`），推送 `v*` tag 即自动在 Windows/macOS/Linux 构建安装包、生成 SHA256 并发布到 Releases。工作流中 electron-builder 命令与产物路径需按源码仓库实际配置调整。
 
@@ -67,8 +68,8 @@ software-download-site/
 
 ## 部署与国内访问
 
-- **现状**：站点托管于 Cloudflare Pages（全球 CDN、自动 HTTPS）；安装包主下载走阿里云 OSS（上海节点、国内直连加速），GitHub Releases 作海外备用。
-- **域名**：`spec-ai.cn` 已托管到 Cloudflare（NS：`merlin.ns.cloudflare.com` / `reza.ns.cloudflare.com`），自定义域名已绑定 Pages 项目。
+- **现状**：站点托管于 Cloudflare Pages（Git 集成项目 `spec-ai-website-git`，全球 CDN、自动 HTTPS）；安装包主下载走阿里云 OSS（上海节点、国内直连加速），GitHub Releases 作海外备用。
+- **域名**：`spec-ai.cn` 已托管到 Cloudflare（NS：`merlin.ns.cloudflare.com` / `reza.ns.cloudflare.com`），自定义域名已绑定 Git 集成 Pages 项目（2026-08-24 起全线上线）。
 - **备案**：当前走境外路线不备案；若后续需要接入国内云（有备案主体），可把安装包迁移到 OSS + CDN 并保持下载链接不变。
 - **Vercel 遗留**：`vercel.json` 是早期 Vercel 部署的响应头配置，Cloudflare 下无作用，可删除。
 
