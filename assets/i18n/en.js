@@ -1,4 +1,4 @@
-/* 1号员工官网 - English */
+﻿/* 1号员工官网 - English */
 window.I18N = {
   "brand-quote": "Only those who will risk going too far can possibly find out how far one can go.",
   "brand-quote-src": "T. S. Eliot",
@@ -56,7 +56,7 @@ window.I18N = {
   "footer-gh": "GitHub Repo",
   "footer-issues": "Issues",
   "footer-license": "License",
-  "footer-copy": "© 2026 Employee #1",
+  "footer-copy": "© 2026 Employee #1 - Xuantong Future (Shanghai) AI Technology Co., Ltd.",
   "footer-host": "Digital AI Employee 1# · Hosted on Cloudflare Pages",
 
   "dl-title": "Download Employee #1",

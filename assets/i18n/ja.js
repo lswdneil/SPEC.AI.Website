@@ -1,4 +1,4 @@
-/* 1号员工官网 - 日本語 */
+﻿/* 1号员工官网 - 日本語 */
 window.I18N = {
   "brand-quote": "遠くへ行き過ぎる危険を冒す者だけが、どこまで行けるのかを知ることができる。",
   "brand-quote-src": "T.S. エリオット",
@@ -56,7 +56,7 @@ window.I18N = {
   "footer-gh": "GitHub リポジトリ",
   "footer-issues": "問題報告",
   "footer-license": "ライセンス",
-  "footer-copy": "© 2026 1号員工",
+  "footer-copy": "© 2026 1号員工-玄同未来（上海）人工智能科技有限公司",
   "footer-host": "Digital AI Employee 1# · Cloudflare Pages でホスト",
 
   "dl-title": "1号員工 をダウンロード",

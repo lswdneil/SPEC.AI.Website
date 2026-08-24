@@ -1,4 +1,4 @@
-/* 1号员工官网 - 한국어 */
+﻿/* 1号员工官网 - 한국어 */
 window.I18N = {
   "brand-quote": "너무 멀리 갈 위험을 감수하는 자만이, 자신이 얼마나 멀리 갈 수 있는지 알 수 있다.",
   "brand-quote-src": "T. S. 엘리엇",
@@ -56,7 +56,7 @@ window.I18N = {
   "footer-gh": "GitHub 저장소",
   "footer-issues": "이슈 제보",
   "footer-license": "라이선스",
-  "footer-copy": "© 2026 1호 직원",
+  "footer-copy": "© 2026 1号员工-玄同未来（上海）人工智能科技有限公司",
   "footer-host": "Digital AI Employee 1# · Cloudflare Pages 호스팅",
 
   "dl-title": "1호 직원 다운로드",

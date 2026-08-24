@@ -1,4 +1,4 @@
-/* 1号员工官网 - 中文（默认） */
+﻿/* 1号员工官网 - 中文（默认） */
 window.I18N = {
   /* 导航 */
   "brand-quote": "只有那些敢于冒险走得太远的人，才有可能知道自己能走多远。",
@@ -63,7 +63,7 @@ window.I18N = {
   "footer-gh": "GitHub 仓库",
   "footer-issues": "问题反馈",
   "footer-license": "开源许可",
-  "footer-copy": "© 2026 1号员工",
+  "footer-copy": "© 2026 1号员工-玄同未来（上海）人工智能科技有限公司",
   "footer-host": "Digital AI Employee 1# · 托管于 Cloudflare Pages",
 
   /* 下载页 */
