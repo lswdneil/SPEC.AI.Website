@@ -1,7 +1,7 @@
-﻿# 1号员工 官网后端 API 对接文档（App 端）
+# 1号员工 官网后端 API 对接文档（App 端）
 
 > 适用对象：1号员工 桌面端（Electron）开发。
-> 版本：API v0.7.0 · 更新：2026-08-25（v0.7.0：订阅档位扩展为 Free/Lite/Pro/Max 四档（REQ-001）——plans/权益矩阵/下单支持新档位，档位 ID 首字母大写并兼容存量小写；Pro 调价 ¥19.9→¥99.9；接口协议字段不变）
+> 版本：API v0.7.0 · 更新：2026-08-25（v0.7.0：订阅档位扩展为 Free/Lite/Pro/Max 四档（REQ-001）——plans/权益矩阵/下单支持新档位，档位 ID 首字母大写并兼容存量小写；Pro 调价 ¥19.9→¥99.9；接口协议字段不变。v0.6.1：修复 CORS 预检 OPTIONS 返回 500（204 null-body 误带 JSON body）——浏览器/Electron 下带 Authorization/JSON 头的请求预检恢复正常）
 > 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
 
 ---
@@ -14,7 +14,7 @@
 - 失败响应：`{ "ok": false, "error": "<错误码>", "detail"?: 附加信息 }`，HTTP 4xx/5xx。
 - 时间戳：统一 **Unix 秒**（整数）。
 - 金额：**分**（integer），货币 CNY。
-- CORS：允许任意来源（桌面端 fetch 无跨域限制）。
+- CORS：允许任意来源（桌面端 fetch 无跨域限制）。OPTIONS 预检返回 204（2026-08-25 已修复此前 500 问题），Electron 下带 `Authorization` 或 `Content-Type: application/json` 的请求预检均正常；若遇 "Failed to fetch" 先检查是否仍命中旧版缓存。
 
 ### 错误码一览
 
@@ -441,3 +441,11 @@ POST /api/license/check
 | `ALIYUN_SMS_TEMPLATE` | 同上（plain） | 可选：默认模板 Code（默认 `100001` 注册/登录；重置 `100003`、绑定 `100004` 按场景自动选择，亦可用 `ALIYUN_SMS_TEMPLATE_RESET` / `ALIYUN_SMS_TEMPLATE_BIND` 覆盖） |
 
 **联调地址**：`https://spec-ai.cn`（上线后）；平台开通前可用 Cloudflare Pages 最新部署 URL（`https://<deployment-id>.spec-ai-website.pages.dev`）。
+
+### 联调测试账号（生产环境可用）
+
+| 用途 | 登录方式 | 凭证 |
+|---|---|---|
+| 开发者调试（App debug/联调） | 邮箱 + 密码 | `dev_web@spec-ai.cn` / `12345678`（plan `Free`） |
+
+> 说明：该账号由云端直插 D1 创建（2026-08-25），密码为 PBKDF2 哈希存储；可用于登录、下单（Lite/Pro/Max）、许可检查等全链路联调。生产环境 `DEV_MODE=0` 时 `activate` 接口不可用（403），激活订阅需等支付通道或联调环境。
