@@ -68,7 +68,7 @@ window.I18N = {
 
   /* 下载页 */
   "dl-title": "下载 1号员工",
-  "dl-desc": "安装包国内直连加速下载，永久免费。macOS / Linux 版本正在开发中，敬请期待。",
+  "dl-desc": "安装包国内直连加速下载，永久免费。macOS / Linux / Android 版本正在开发中，敬请期待。",
   "dl-files-title": "全部文件与校验值",
   "dl-col-name": "文件名",
   "dl-col-size": "大小",

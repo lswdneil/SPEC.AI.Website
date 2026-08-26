@@ -508,7 +508,7 @@ a { color: inherit; }
 .page-hero p { color: var(--text-secondary); max-width: 680px; }
 .page-hero p .info-blue { color: var(--info); }
 
-.dl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.dl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
 .dl-card {
   border: 1px solid var(--line-soft); border-radius: var(--radius);
   background: var(--ink-2);
@@ -623,6 +623,9 @@ a { color: inherit; }
 .fade-item.d4 { animation-delay: 0.44s; }
 
 /* ---------- 响应式 ---------- */
+@media (max-width: 1280px) {
+  .dl-grid { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 960px) {
   .hero-inner { grid-template-columns: 1fr; gap: 40px; }
   .hero { text-align: left; }

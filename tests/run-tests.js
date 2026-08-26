@@ -129,8 +129,8 @@ test('releases.json 语法与结构', () => {
   if (!data.latest || !/^\d+\.\d+\.\d+$/.test(data.latest.version || '')) errs.push('latest.version 缺失或非 x.y.z 格式');
   if (!Array.isArray(data.capabilities) || data.capabilities.length < 3) errs.push('capabilities 应至少 3 项');
   if (!Array.isArray(data.changelog) || data.changelog.length === 0) errs.push('changelog 不应为空');
-  if (!data.platforms || !data.platforms.windows || !data.platforms.macos || !data.platforms.linux) {
-    errs.push('platforms 应包含 windows/macos/linux 三项');
+  if (!data.platforms || !data.platforms.windows || !data.platforms.macos || !data.platforms.linux || !data.platforms.android) {
+    errs.push('platforms 应包含 windows/macos/linux/android 四项');
   }
   return errs;
 });
@@ -142,7 +142,7 @@ test('平台数据与下载链接门禁', () => {
   // 允许的下载源：GitHub Release（海外/备份）与阿里云 OSS（国内加速）
   const isAllowedHost = (u) => /^https:\/\/github\.com\//.test(u) || /^https:\/\/specai-agent-no1-installer\.oss-cn-shanghai\.aliyuncs\.com\//.test(u);
   const hostErr = (u) => isAllowedHost(u) ? '' : '非受信任下载源（应为 GitHub 或阿里云 OSS）';
-  for (const key of ['windows', 'macos', 'linux']) {
+  for (const key of ['windows', 'macos', 'linux', 'android']) {
     const p = data.platforms[key];
     if (!p) { errs.push(`platforms.${key} 缺失`); continue; }
     if (!p.label || !p.hint) errs.push(`platforms.${key} 缺少 label/hint`);

@@ -60,7 +60,7 @@ window.I18N = {
   "footer-host": "Digital AI Employee 1# · Cloudflare Pages 호스팅",
 
   "dl-title": "1호 직원 다운로드",
-  "dl-desc": "국내 CDN 고속 다운로드, 영구 무료. macOS / Linux 버전은 개발 중입니다.",
+  "dl-desc": "국내 CDN 고속 다운로드, 영구 무료. macOS / Linux / Android 버전은 개발 중입니다.",
   "dl-files-title": "전체 파일 및 체크섬",
   "dl-col-name": "파일",
   "dl-col-size": "크기",

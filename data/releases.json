@@ -53,6 +53,13 @@
       "hint": "即将推出 · 敬请期待",
       "primary": null,
       "files": []
+    },
+    "android": {
+      "id": "android",
+      "label": "Android",
+      "hint": "即将推出 · 敬请期待",
+      "primary": null,
+      "files": []
     }
   },
   "capabilities": [

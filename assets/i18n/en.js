@@ -60,7 +60,7 @@ window.I18N = {
   "footer-host": "Digital AI Employee 1# · Hosted on Cloudflare Pages",
 
   "dl-title": "Download Employee #1",
-  "dl-desc": "Fast domestic downloads via CDN, free forever. macOS / Linux versions are under development.",
+  "dl-desc": "Fast domestic downloads via CDN, free forever. macOS / Linux / Android versions are under development.",
   "dl-files-title": "All Files & Checksums",
   "dl-col-name": "File",
   "dl-col-size": "Size",
