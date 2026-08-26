@@ -20,23 +20,23 @@
       "primary": {
         "name": "specai-1.2.0-win-x64.exe",
         "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.0-win-x64.exe",
-        "size": "145.8 MB",
-        "sha256": "dec70a1cec2dd16ff3f25b3869db2de0338ac23244db5549793a138ae2b91d92"
+        "size": "150.4 MB",
+        "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
       },
       "files": [
         {
           "name": "specai-1.2.0-win-x64.exe",
           "type": "Windows 安装包（推荐）",
           "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.0-win-x64.exe",
-          "size": "145.8 MB",
-          "sha256": "dec70a1cec2dd16ff3f25b3869db2de0338ac23244db5549793a138ae2b91d92"
+          "size": "150.4 MB",
+          "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
         },
         {
           "name": "specai-1.2.0-win-x64.exe",
           "type": "GitHub 备用下载（海外）",
           "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.2.0/specai-1.2.0-win-x64.exe",
-          "size": "145.8 MB",
-          "sha256": "dec70a1cec2dd16ff3f25b3869db2de0338ac23244db5549793a138ae2b91d92"
+          "size": "150.4 MB",
+          "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
         }
       ]
     },
