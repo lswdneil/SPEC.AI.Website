@@ -1,4 +1,4 @@
-﻿/* 1号员工官网 - English */
+/* 1号员工官网 - English */
 window.I18N = {
   "brand-quote": "Only those who will risk going too far can possibly find out how far one can go.",
   "brand-quote-src": "T. S. Eliot",
@@ -84,6 +84,10 @@ window.I18N = {
   "log-title": "Changelog",
   "log-desc": "Detailed release notes for every version are also published on GitHub Releases.",
   "badge-new": "Latest",
+  "log-v1.2.0-i1": "WeChat channel: session isolation & context governance, much faster replies",
+  "log-v1.2.0-i2": "Feishu channel: WebSocket direct connection + QR pairing (reply with the code to bind)",
+  "log-v1.2.0-i3": "Channel page: QR login page no longer flashes when switching conversations",
+  "log-v1.2.0-i4": "UI governance (P0/P1): semantic color tokens, Arco components, 8-language i18n",
   "log-v1.1.3-i1": "Production-ready: signed EXE installer can be generated",
   "log-v1.1.3-i2": "Fixed Pi SDK conversation timing (ProviderPool reload + initial message)",
   "log-v1.1.3-i3": "All 24 historical bugs fixed",
