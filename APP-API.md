@@ -449,3 +449,22 @@ POST /api/license/check
 | 开发者调试（App debug/联调） | 邮箱 + 密码 | `dev_web@spec-ai.cn` / `12345678`（plan `Free`） |
 
 > 说明：该账号由云端直插 D1 创建（2026-08-25），密码为 PBKDF2 哈希存储；可用于登录、下单（Lite/Pro/Max）、许可检查等全链路联调。生产环境 `DEV_MODE=0` 时 `activate` 接口不可用（403），激活订阅需等支付通道或联调环境。
+
+### OSS 安装包上传（发版用，需阿里云凭证）
+
+安装包发布/更新走**阿里云 OSS**（国内直连加速），GitHub Releases 作海外备用。发版上传时需要以下阿里云凭证：
+
+| 项 | 值 / 位置 |
+|---|---|
+| AccessKey ID | `LTAI5t5cGPbs7vUgGTQ1avnm` |
+| AccessKey Secret | ⚠️ **不落库**——仅存于本机密钥管理/ossutil 配置（`~/.ossutilconfig` 或环境变量），需要时从本机获取 |
+| Bucket | `specai-agent-no1-installer`（华东上海 `oss-cn-shanghai`） |
+| 对象路径 | `specai-<version>-win-x64.exe`（如 `specai-1.1.3-win-x64.exe`） |
+| 上传工具 | 阿里云 `ossutil`（`ossutil cp <本地文件> oss://specai-agent-no1-installer/`）或控制台上传 |
+
+**发版后必须同步**（云端的 3 处）：
+1. `data/releases.json`：`platforms.windows.primary.url` + `files[0].url` 指向新 OSS 直链；`files[1].url` 指向新 GitHub Release；同步更新 `version`/`size`/`sha256`
+2. `index.html`：JSON-LD `softwareVersion` 与 `downloadUrl`
+3. macOS/Linux 发布时同样上传 OSS 并补 `releases.json` 对应项
+
+> ⚠️ 安全约定：**AccessKey Secret 永不写入本仓库**（仓库经 Git 集成推送至 GitHub 公开仓库）。AccessKey ID 可记录；Secret 仅存本机。若 Secret 疑似泄露，立即在阿里云 RAM 控制台禁用/重建该 AccessKey 并同步更新本机配置。
