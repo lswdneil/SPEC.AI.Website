@@ -165,6 +165,9 @@
   /* ---------- 渲染：下载页平台卡片 ---------- */
   function renderDlGrid(grid, d) {
     if (!grid) return;
+    // 必须先清空：rerenderDynamic 会在 i18n 加载与数据加载两条路径各触发一次，
+    // 不清空会导致 #dl-grid 重复渲染（每平台两张卡）——见 BUG 修复记录
+    grid.innerHTML = "";
     Object.keys(d.platforms).forEach(function (key) {
       var p = d.platforms[key];
       var card = el("article", "dl-card reveal");

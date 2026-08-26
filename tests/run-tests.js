@@ -239,6 +239,19 @@ test('main.js 语法检查', () => {
   return r.status === 0 ? [] : [r.stderr || 'node --check 失败'];
 });
 
+test('main.js renderDlGrid 必须先清空容器（防重复卡片回归）', () => {
+  // 回归保护：rerenderDynamic 会被 i18n 加载与数据加载两条路径各触发一次，
+  // 若 renderDlGrid 不清空 #dl-grid，会重复渲染（每平台两张卡）——见 2026-08-26 线上 BUG
+  if (!exists('assets/js/main.js')) return ['assets/js/main.js 不存在'];
+  const js = read('assets/js/main.js');
+  const m = js.match(/function renderDlGrid\([\s\S]*?function renderFileRows/);
+  if (!m) return ['无法定位 renderDlGrid 函数体'];
+  const body = m[0];
+  if (!body.includes('innerHTML = ""')) return ['renderDlGrid 缺少 grid.innerHTML = "" 清空逻辑'];
+  if (!body.includes('grid.appendChild(card)')) return ['renderDlGrid 缺少卡片追加逻辑'];
+  return [];
+});
+
 test('_worker.js 语法检查（后端 API worker）', () => {
   if (!exists('_worker.js')) return ['_worker.js 不存在'];
   const r = spawnSync(process.execPath, ['--check', path.join(ROOT, '_worker.js')], { encoding: 'utf8' });
