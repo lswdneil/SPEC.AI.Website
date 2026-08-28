@@ -8,9 +8,9 @@
     "license": "开源"
   },
   "latest": {
-    "version": "1.2.0",
-    "date": "2026-08-26",
-    "summary": "微信/飞书双渠道直连、扫码配对、UI 治理与性能修复：渠道对话与扫码登录体验全面升级。"
+    "version": "1.2.1",
+    "date": "2026-08-28",
+    "summary": "内置双管理员凭证（离线满血 · 30 天有效期）、权限模型重构、登录注册稳定性修复：登录体验更稳，登录页显示当前版本。"
   },
   "platforms": {
     "windows": {
@@ -18,25 +18,25 @@
       "label": "Windows 10 / 11",
       "hint": "x64 · NSIS 安装包，双击安装",
       "primary": {
-        "name": "specai-1.2.0-win-x64.exe",
-        "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.0-win-x64.exe",
+        "name": "specai-1.2.1-win-x64.exe",
+        "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.1-win-x64.exe",
         "size": "150.4 MB",
-        "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
+        "sha256": "0d1e2685552427c712460fb73a250b5b52c4bd4a27b2690f1d5e43211098222a"
       },
       "files": [
         {
-          "name": "specai-1.2.0-win-x64.exe",
+          "name": "specai-1.2.1-win-x64.exe",
           "type": "Windows 安装包（推荐）",
-          "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.0-win-x64.exe",
+          "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai-1.2.1-win-x64.exe",
           "size": "150.4 MB",
-          "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
+          "sha256": "0d1e2685552427c712460fb73a250b5b52c4bd4a27b2690f1d5e43211098222a"
         },
         {
-          "name": "specai-1.2.0-win-x64.exe",
+          "name": "specai-1.2.1-win-x64.exe",
           "type": "GitHub 备用下载（海外）",
-          "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.2.0/specai-1.2.0-win-x64.exe",
+          "url": "https://github.com/lswdneil/Digital-AI-Employee/releases/download/v1.2.1/specai-1.2.1-win-x64.exe",
           "size": "150.4 MB",
-          "sha256": "06a20d4fdce647594179740ae444ed1ef7a4db9554b096b2cd154ebba4059878"
+          "sha256": "0d1e2685552427c712460fb73a250b5b52c4bd4a27b2690f1d5e43211098222a"
         }
       ]
     },
@@ -101,6 +101,18 @@
     }
   ],
   "changelog": [
+    {
+      "version": "1.2.1",
+      "date": "2026-08-28",
+      "tag": "v1.2.1",
+      "items": [
+        "账号体系：内置管理员凭证登录（离线满血可用，双管理员账户，30 天有效期，重新发放=新版 EXE 携带新凭证）",
+        "权限模型：满血仅限管理员凭证会话；移除本地开发者首启流程与硬编码 dev 账号（dev/123、dev_spec@spec.ai 已删除）",
+        "登录/注册：修复手机号登录后桥接失败卡在\"正在跳转\"（主进程外网请求走系统代理）；登录页显示当前软件版本",
+        "BUG 修复：注册成功后自动补设备注册（不依赖主界面挂载）、注册/登录成功分支跳转不再因闭包吞掉 token 而静默中断",
+        "可观测性：主进程 /api/ 请求日志（状态码 + 耗时），排查认证/桥接问题不再靠服务端反推"
+      ]
+    },
     {
       "version": "1.2.0",
       "date": "2026-08-26",
