@@ -414,6 +414,51 @@ async function main() {
   r = await call('/api/license/check', {}, { Authorization: 'Bearer ' + phoneToken });
   assert('恢复 Free 无到期时间', r.data.license.plan === 'Free' && r.data.license.expiresAt === null, JSON.stringify(r.data.license));
 
+  console.log('— 云端反馈（自动建 GitHub issue）');
+  testIp = '203.0.113.99';
+  r = await call('/api/auth/send-code', { target: 'fb-user@example.com', purpose: 'register' });
+  const fbCode = r.data.devCode;
+  r = await call('/api/auth/register', { method: 'email', email: 'fb-user@example.com', password: 'password123', code: fbCode });
+  assert('反馈测试用户注册成功', r.status === 200 && r.data.ok && r.data.token, JSON.stringify(r.data));
+  const fbToken = r.data.token;
+  const realFetch2 = globalThis.fetch;
+  let ghRequest = null;
+  globalThis.fetch = async (url, init) => {
+    if (String(url).includes('api.github.com/repos/lswdneil/Digital-AI-Employee/issues')) {
+      ghRequest = JSON.parse(init.body);
+      return new Response(JSON.stringify({ number: 7, html_url: 'https://github.com/lswdneil/Digital-AI-Employee/issues/7' }), { status: 201, headers: { 'Content-Type': 'application/json' } });
+    }
+    return realFetch2(url, init);
+  };
+  const fbBody = { module: 'mcp', type: 'bug', summary: 'Windows 下载超时后无重试提示', description: '点击下载按钮后一直转圈，最后提示失败', version: '1.2.1', userCode: 'T-1001' };
+  try {
+    env.WORKERS_GH_TOKEN = 'test-gh-token';
+    r = await call('/api/feedback', fbBody, { Authorization: 'Bearer ' + fbToken });
+    assert('feedback 成功返回 issueUrl', r.status === 200 && r.data.ok && r.data.issueUrl === 'https://github.com/lswdneil/Digital-AI-Employee/issues/7', JSON.stringify(r.data));
+    assert('GH 标题 [E2] 前缀且 ≤60', ghRequest && ghRequest.title.startsWith('[E2] [mcp]') && ghRequest.title.length <= 60, ghRequest && ghRequest.title);
+    assert('GH labels source+type', ghRequest && ghRequest.labels.length === 2 && ghRequest.labels[0] === 'source:employee-2' && ghRequest.labels[1] === 'type:bug', JSON.stringify(ghRequest && ghRequest.labels));
+    assert('GH body 五段含邮箱与版本', ghRequest && ghRequest.body.includes('### 问题描述') && ghRequest.body.includes('fb-user@example.com') && ghRequest.body.includes('v1.2.1'), (ghRequest && ghRequest.body || '').slice(0, 100));
+    const logRow = await env.DB.prepare("SELECT issue_url, status FROM feedback_logs WHERE user_id = (SELECT id FROM users WHERE email = 'fb-user@example.com') ORDER BY id DESC LIMIT 1").first();
+    assert('feedback_logs 落库 ok+url', logRow && logRow.status === 'ok' && logRow.issue_url === 'https://github.com/lswdneil/Digital-AI-Employee/issues/7', JSON.stringify(logRow));
+    // 1 分钟内重复提交 → 限流
+    r = await call('/api/feedback', fbBody, { Authorization: 'Bearer ' + fbToken });
+    assert('同用户重复提交 429', r.status === 429 && r.data.error === 'feedback_rate_limited', JSON.stringify(r.data));
+    r = await call('/api/feedback', { module: 'mcp' }, { Authorization: 'Bearer ' + fbToken });
+    assert('缺参 400', r.status === 400 && r.data.error === 'missing_fields', JSON.stringify(r.data));
+    r = await call('/api/feedback', Object.assign({}, fbBody, { type: 'bad type;' }), { Authorization: 'Bearer ' + fbToken });
+    assert('非法 type 400', r.status === 400 && r.data.error === 'invalid_type', JSON.stringify(r.data));
+    r = await call('/api/feedback', fbBody);
+    assert('未登录 401', r.status === 401 && r.data.error === 'unauthorized', JSON.stringify(r.data));
+    // GitHub API 失败 → 502（手机用户尚未提交过，不撞限流）
+    globalThis.fetch = async () => new Response(JSON.stringify({ message: 'Bad credentials' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+    r = await call('/api/feedback', fbBody, { Authorization: 'Bearer ' + phoneToken });
+    assert('GitHub 失败 502 带原因', r.status === 502 && r.data.error === 'github_issue_failed' && /Bad credentials/.test(r.data.detail || ''), JSON.stringify(r.data));
+  } finally {
+    globalThis.fetch = realFetch2;
+    delete env.WORKERS_GH_TOKEN;
+  }
+  r = await call('/api/feedback', fbBody, { Authorization: 'Bearer ' + fbToken });
+  assert('未配置 GH token 503', r.status === 503 && r.data.error === 'github_not_configured', JSON.stringify(r.data));
   console.log('— 静态回退');
   const sres = await worker.fetch(new Request('https://spec-ai.cn/index.html'), env, {});
   const sbody = await sres.text();

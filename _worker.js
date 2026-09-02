@@ -117,6 +117,16 @@ const SCHEMA = [
     last_seen_at INTEGER,
     created_at INTEGER NOT NULL,
     UNIQUE(user_id, device_id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS feedback_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    module TEXT,
+    type TEXT,
+    summary TEXT,
+    issue_url TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at INTEGER NOT NULL
   )`
 ];
 
@@ -558,6 +568,11 @@ async function handleApi(request, env, ctx, path) {
     return handleRemoveDevice(request, env);
   }
 
+  // 用户反馈（需登录；云端自动建 GitHub issue）
+  if (path === '/api/feedback' && method === 'POST') {
+    return handleFeedback(request, env);
+  }
+
   return fail('not_found', 404);
 }
 
@@ -780,6 +795,101 @@ async function handleRemoveDevice(request, env) {
   if (!deviceId || deviceId.length > 128) return fail('invalid_device');
   await env.DB.prepare('DELETE FROM devices WHERE user_id = ? AND device_id = ?').bind(user.id, deviceId).run();
   return ok({ removed: deviceId });
+}
+
+/* ---------- 用户反馈（云端自动建 GitHub issue） ---------- */
+
+const FEEDBACK_WINDOW = 60;               // 同用户 1 分钟最多 1 条
+const FEEDBACK_TITLE_MAX = 60;            // GitHub issue 标题 ≤ 60 字符
+const FEEDBACK_GH_REPO = 'lswdneil/Digital-AI-Employee';
+const FEEDBACK_TYPE_RE = /^[A-Za-z0-9_-]{1,40}$/;   // 类型用于 GitHub label，限安全字符
+const FEEDBACK_FIELD_MAX = { module: 40, type: 40, summary: 300, description: 4000, version: 40, userCode: 80 };
+
+async function handleFeedback(request, env) {
+  const user = await requireUser(request, env);
+  if (!user) return fail('unauthorized', 401);
+
+  const b = await readBody(request);
+  const module = String(b.module || '').trim();
+  const type = String(b.type || '').trim();
+  const summary = String(b.summary || '').trim();
+  const description = String(b.description || '').trim();
+  const version = String(b.version || '').trim();
+  const userCode = String(b.userCode || '').trim();
+
+  if (!module || !type || !summary || !description || !version) {
+    return fail('missing_fields', 400, { required: ['module', 'type', 'summary', 'description', 'version'] });
+  }
+  if (!FEEDBACK_TYPE_RE.test(type)) return fail('invalid_type', 400, { type });
+  const tooLongField = Object.keys(FEEDBACK_FIELD_MAX).find(function (k) {
+    return String(b[k] || '').length > FEEDBACK_FIELD_MAX[k];
+  });
+  if (tooLongField) return fail('field_too_long', 400, { field: tooLongField });
+
+  const ghToken = env.WORKERS_GH_TOKEN;
+  if (!ghToken) return fail('github_not_configured', 503, 'WORKERS_GH_TOKEN 未配置（wrangler secret put WORKERS_GH_TOKEN）');
+
+  // 限流：同用户 1 分钟 1 条（D1 feedback_logs 计数）
+  const since = now() - FEEDBACK_WINDOW;
+  const recent = await env.DB.prepare(
+    'SELECT COUNT(*) AS n FROM feedback_logs WHERE user_id = ? AND created_at > ?'
+  ).bind(user.id, since).first();
+  if (recent && recent.n >= 1) {
+    return fail('feedback_rate_limited', 429, { retryAfter: FEEDBACK_WINDOW });
+  }
+
+  const t = now();
+  await env.DB.prepare(
+    'INSERT INTO feedback_logs (user_id, module, type, summary, issue_url, status, created_at) VALUES (?, ?, ?, ?, NULL, ?, ?)'
+  ).bind(user.id, module, type, summary, 'pending', t).run();
+
+  const title = Array.from('[E2] [' + module + '] ' + summary).slice(0, FEEDBACK_TITLE_MAX).join('');
+  const submitter = user.email || user.phone || '（未绑定）';
+  const bodyParts = [
+    '### 问题描述', description, '',
+    '### 问题模块', module, '',
+    '### 问题类型', type, '',
+    '### 环境信息', '- 版本: v' + version, '- 提交时间: ' + new Date(t * 1000).toISOString(), '',
+    '### 提交方信息', '- 提交用户: ' + submitter
+  ];
+  if (userCode) bodyParts.push('- 内测代号: ' + userCode);
+  const body = bodyParts.join('\n');
+
+  let gh;
+  try {
+    const ghRes = await fetch('https://api.github.com/repos/' + FEEDBACK_GH_REPO + '/issues', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + ghToken,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'spec-ai-worker-feedback',
+        'X-GitHub-Api-Version': '2022-11-28'
+      },
+      body: JSON.stringify({
+        title: title,
+        body: body,
+        labels: ['source:employee-2', 'type:' + type]
+      })
+    });
+    if (!ghRes.ok) {
+      let reason = 'GitHub API HTTP ' + ghRes.status;
+      try {
+        const j = await ghRes.json();
+        if (j && j.message) reason += ': ' + j.message;
+      } catch (e) { /* 保留状态码原因 */ }
+      await env.DB.prepare("UPDATE feedback_logs SET status = 'failed' WHERE user_id = ? AND created_at = ?").bind(user.id, t).run();
+      return fail('github_issue_failed', 502, reason);
+    }
+    gh = await ghRes.json();
+  } catch (e) {
+    await env.DB.prepare("UPDATE feedback_logs SET status = 'failed' WHERE user_id = ? AND created_at = ?").bind(user.id, t).run();
+    return fail('github_unreachable', 502, String(e.message || e));
+  }
+
+  const issueUrl = (gh && gh.html_url) || ('https://github.com/' + FEEDBACK_GH_REPO + '/issues/' + ((gh && gh.number) || ''));
+  await env.DB.prepare("UPDATE feedback_logs SET status = 'ok', issue_url = ? WHERE user_id = ? AND created_at = ?").bind(issueUrl, user.id, t).run();
+  return ok({ issueUrl: issueUrl });
 }
 
 /* ---------- 各接口实现 ---------- */

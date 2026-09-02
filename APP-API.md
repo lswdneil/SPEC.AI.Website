@@ -3,6 +3,8 @@
 > 适用对象：1号员工 桌面端（Electron）开发。
 > 版本：API v0.7.0 · 更新：2026-08-25（v0.7.0：订阅档位扩展为 Free/Lite/Pro/Max 四档（REQ-001）——plans/权益矩阵/下单支持新档位，档位 ID 首字母大写并兼容存量小写；Pro 调价 ¥19.9→¥99.9；接口协议字段不变。v0.6.1：修复 CORS 预检 OPTIONS 返回 500（204 null-body 误带 JSON body）——浏览器/Electron 下带 Authorization/JSON 头的请求预检恢复正常）
 > 基础地址：生产 `https://spec-ai.cn`（**已上线，2026-08-24 起生效**）；联调可用最新部署地址（见 Cloudflare Pages 部署列表）。
+>
+> 📌 **其他应用复用同一套验证码鉴权/注册/登录（共用 D1 数据库）**：见 [docs/AUTH-INTEGRATION-GUIDE.md](docs/AUTH-INTEGRATION-GUIDE.md)（通道配置、数据库表、调用示例、集成要点）。
 
 ---
 
@@ -40,6 +42,11 @@
 | `forbidden` | 403 | 无权操作（含非开发模式调用激活接口） |
 | `payment_not_configured` | 501 | 支付通道未接入（预留） |
 | `db_unavailable` | 503 | 数据库不可用 |
+| `missing_fields` | 400 | 反馈参数缺失（module/type/summary/description/version 至少其一） |
+| `invalid_type` / `field_too_long` | 400 | 反馈类型不合法 / 字段超长 |
+| `feedback_rate_limited` | 429 | 反馈提交过频（同用户 1 分钟 1 条，detail.retryAfter=60） |
+| `github_not_configured` | 503 | 未配置 `WORKERS_GH_TOKEN` |
+| `github_issue_failed` / `github_unreachable` | 502 | GitHub 建 issue 失败/不可达（detail 带原因） |
 | `internal` | 500 | 服务内部错误 |
 | `not_found` | 404 | 接口不存在 |
 
@@ -374,9 +381,36 @@ Authorization: Bearer <token>
 
 ---
 
-## 6. 推荐对接流程
+## 6. 用户反馈接口（云端自动建 GitHub issue）
 
-### 6.1 首次使用（注册）
+### 6.1 提交反馈
+
+```
+POST /api/feedback
+```
+
+- **鉴权**：需登录，`Authorization: Bearer <token>`（与其余接口同一 JWT 验证）。
+- **作用**：校验通过后云端自动调用 GitHub API 在 `lswdneil/Digital-AI-Employee` 建 issue（labels：`source:employee-2`、`type:<type>`），用户零接管。
+- **请求体**：
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `module` | 是 | 问题模块（如 `mcp`、`conversation`，≤40 字符） |
+| `type` | 是 | 问题类型：`bug` / `feature` / `suggestion` / `question`（限 `[A-Za-z0-9_-]`，用于 label） |
+| `summary` | 是 | 一句话摘要（拼入标题，标题整体 ≤60 字符） |
+| `description` | 是 | 详细描述（≤4000 字符） |
+| `version` | 是 | App 版本（如 `1.2.1`） |
+| `userCode` | 否 | 内测代号（≤80 字符） |
+
+- **成功**：HTTP 200，`{ "ok": true, "issueUrl": "https://github.com/lswdneil/Digital-AI-Employee/issues/<n>" }`（issueUrl 供前端可选展示）。
+- **限流**：同用户 1 分钟 1 条（D1 `feedback_logs` 表计数），超出返回 429。
+- **issue 标题**：`[E2] [<module>] <summary>`，≤60 字符截断。
+- **issue 正文**：五段模板（问题描述 / 问题模块 / 问题类型 / 环境信息=版本+提交时间 / 提交方信息=提交用户邮箱+内测代号），参考桌面 FeedbackModal buildBody 结构。
+
+---
+## 7. 推荐对接流程
+
+### 7.1 首次使用（注册）
 
 ```
 App 启动 → 无 token？
@@ -389,7 +423,7 @@ App 启动 → 无 token？
   → POST /api/license/check 获取权益 → 进入主界面
 ```
 
-### 6.2 日常启动
+### 7.2 日常启动
 
 ```
 POST /api/license/check
@@ -397,7 +431,7 @@ POST /api/license/check
   └─ 401 → token 失效 → 引导重新登录（6.3）
 ```
 
-### 6.3 登录
+### 7.3 登录
 
 ```
 邮箱：POST /api/auth/login {method:"email", email, password}
@@ -406,7 +440,7 @@ POST /api/license/check
 → 保存 token → 重复 6.2
 ```
 
-### 6.4 订阅升级（当前框架阶段）
+### 7.4 订阅升级（当前框架阶段）
 
 ```
 用户点击订阅 → POST /api/subscription/orders {plan:"Pro", period:"monthly"}
@@ -417,7 +451,7 @@ POST /api/license/check
 
 ---
 
-## 7. 安全说明
+## 8. 安全说明
 
 - **密码**：客户端仅经 TLS 传输明文密码，服务端 PBKDF2-SHA256（21 万次迭代）哈希存储，客户端不保存、不本地缓存密码。
 - **token 存储**：桌面端建议用 Electron `safeStorage`（系统级加密）持久化 JWT；不要明文落盘。
@@ -428,11 +462,12 @@ POST /api/license/check
 
 ---
 
-## 8. 联调与上线配置
+## 9. 联调与上线配置
 
 | 配置项 | 位置 | 说明 |
 |---|---|---|
 | `JWT_SECRET` | Cloudflare 控制台 → 项目 → 设置 → 变量（secret） | **必须**配置，否则每次部署后 token 失效 |
+| `WORKERS_GH_TOKEN` | 同上（secret） | **反馈接口必需**：GitHub Personal Access Token（`repo` 写权限，用于自动建 issue）；缺失时 `/api/feedback` 返回 503 |
 | `DEV_MODE` | 同上（plain） | 联调 `1`，生产 `0` |
 | `RESEND_API_KEY` / `MAIL_FROM` | 同上（secret） | 可选：验证码邮件通道（未配置时验证码不投递，仅日志） |
 | `SMS_WEBHOOK_URL` | 同上（secret） | 可选：旧版短信通道钩子，服务端向该地址 POST `{phone, code, purpose}`（阿里云通道未配置时才启用） |
