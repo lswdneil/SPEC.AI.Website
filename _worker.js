@@ -810,6 +810,9 @@ async function handleFeedback(request, env) {
   if (!user) return fail('unauthorized', 401);
 
   const b = await readBody(request);
+  // 来源员工：'employee-1' | 'employee-2'；缺省 employee-2（兼容早期 E2 客户端不带 source）
+  const source = b.source === 'employee-1' ? 'employee-1' : 'employee-2';
+  const prefix = source === 'employee-1' ? 'E1' : 'E2';
   const module = String(b.module || '').trim();
   const type = String(b.type || '').trim();
   const summary = String(b.summary || '').trim();
@@ -843,14 +846,14 @@ async function handleFeedback(request, env) {
     'INSERT INTO feedback_logs (user_id, module, type, summary, issue_url, status, created_at) VALUES (?, ?, ?, ?, NULL, ?, ?)'
   ).bind(user.id, module, type, summary, 'pending', t).run();
 
-  const title = Array.from('[E2] [' + module + '] ' + summary).slice(0, FEEDBACK_TITLE_MAX).join('');
+  const title = Array.from('[' + prefix + '] [' + module + '] ' + summary).slice(0, FEEDBACK_TITLE_MAX).join('');
   const submitter = user.email || user.phone || '（未绑定）';
   const bodyParts = [
     '### 问题描述', description, '',
     '### 问题模块', module, '',
     '### 问题类型', type, '',
     '### 环境信息', '- 版本: v' + version, '- 提交时间: ' + new Date(t * 1000).toISOString(), '',
-    '### 提交方信息', '- 提交用户: ' + submitter
+    '### 提交方信息', '- 员工编号: ' + prefix, '- 提交用户: ' + submitter
   ];
   if (userCode) bodyParts.push('- 内测代号: ' + userCode);
   const body = bodyParts.join('\n');
@@ -869,7 +872,7 @@ async function handleFeedback(request, env) {
       body: JSON.stringify({
         title: title,
         body: body,
-        labels: ['source:employee-2', 'type:' + type]
+        labels: ['source:' + source, 'type:' + type]
       })
     });
     if (!ghRes.ok) {
