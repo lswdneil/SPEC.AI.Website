@@ -167,6 +167,25 @@ test('平台数据与下载链接门禁', () => {
   return errs;
 });
 
+test('2号员工（employee2）下载数据门禁', () => {
+  const errs = [];
+  const data = JSON.parse(read('data/releases.json'));
+  const e2 = data.employee2;
+  if (!e2) return ['releases.json 缺少 employee2 节点（2号员工官网下载入口）'];
+  if (!e2.name || !e2.version) errs.push('employee2 缺少 name/version');
+  const w = e2.windows;
+  if (!w || !w.url || !w.name || !w.size || !w.sha256) {
+    errs.push('employee2.windows 缺少 name/url/size/sha256');
+  } else {
+    // 2号员工 桌面发布位置红线：共享桶 specai-agent-no1-installer 的 specai/ 前缀（不得混入桶根 1号员工 区域）
+    const okPrefix = /^https:\/\/specai-agent-no1-installer\.oss-cn-shanghai\.aliyuncs\.com\/specai\//.test(w.url);
+    if (!okPrefix) errs.push('employee2.windows.url 必须位于 specai/ 前缀（1号/2号 发布位置隔离红线）');
+    if (w.url.includes('specai-1.') || /\/specai-\d+\.\d+\.\d+-win/.test(w.url)) errs.push('employee2.windows.url 疑似指向 1号员工 安装包（位置混淆）');
+    if (!/^[0-9a-f]{64}$/i.test(w.sha256)) errs.push('employee2.windows.sha256 应为 64 位十六进制');
+  }
+  return errs;
+});
+
 /* ---------- 3. 占位符阻断（发布门禁核心） ---------- */
 test('占位符阻断（不得残留待替换值）', () => {
   if (ALLOW_PLACEHOLDERS) return []; // 开发模式豁免；发布前/CI 必须严格

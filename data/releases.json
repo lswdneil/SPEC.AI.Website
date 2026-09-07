@@ -12,6 +12,17 @@
     "date": "2026-08-28",
     "summary": "内置双管理员凭证（离线满血 · 30 天有效期）、权限模型重构、登录注册稳定性修复：登录体验更稳，登录页显示当前版本。"
   },
+  "employee2": {
+    "name": "2号员工",
+    "nameEn": "SpecAi.No2.Agent",
+    "version": "0.3.1",
+    "windows": {
+      "name": "SpecAi.No2.Agent_0.3.1_x64_en-US.msi",
+      "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai/SpecAi.No2.Agent_0.3.1_x64_en-US.msi",
+      "size": "45.1 MB",
+      "sha256": "e34d85fee1572c1e284daa166de5d54e2a36e30a2c2c6a7df356bcd7e34968f1"
+    }
+  },
   "platforms": {
     "windows": {
       "id": "windows",

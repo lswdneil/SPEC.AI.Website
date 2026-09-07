@@ -141,6 +141,20 @@
       }
     });
     if (main.children.length) wrap.appendChild(main);
+    // 2号员工 下载主按钮行：紧跟 1号员工 下载按钮下方（同元素样式，NVIDIA 品牌绿）
+    // 数据来自 releases.json employee2 节点；仅 Windows（官网仅提供 MSI）
+    if (d.employee2 && d.employee2.windows && d.employee2.windows.url) {
+      var e2Row = el("div", "hero-dl-main hero-dl-e2");
+      var e2Btn = el("a", "btn btn-nvidia");
+      e2Btn.href = d.employee2.windows.url;
+      e2Btn.setAttribute("download", "");
+      var e2Name = d.employee2.name || "2号员工";
+      var e2Label = t("dl-for", "下载 " + e2Name + " for Windows")
+        .replace(/\{name\}/g, e2Name).replace(/\{os\}/g, "Windows");
+      e2Btn.innerHTML = OS_ICONS.windows + "<span>" + e2Label + "</span>" + '<span class="arrow" aria-hidden="true">→</span>';
+      e2Row.appendChild(e2Btn);
+      wrap.appendChild(e2Row);
+    }
     if (soon.children.length) wrap.appendChild(soon);
     container.appendChild(wrap);
   }

@@ -318,6 +318,13 @@ a { color: inherit; }
 .btn-primary .arrow { transition: transform 0.18s ease; }
 .btn-primary:hover .arrow { transform: translateX(4px); }
 
+/* 2号员工 下载主按钮：NVIDIA 品牌绿（与 .btn-primary 同元素规格，仅配色区分） */
+.btn-nvidia { background: #76B900; color: #fff; }
+.btn-nvidia:hover { background: #8CC63F; box-shadow: 0 12px 30px rgba(118, 185, 0, 0.4); transform: translateY(-2px); }
+.btn-nvidia .arrow { transition: transform 0.18s ease; }
+.btn-nvidia:hover .arrow { transform: translateX(4px); }
+.hero-dl-e2 { margin-top: 2px; }
+
 .btn-ghost-dark { border: 1px solid var(--line); color: var(--text-primary); background: transparent; }
 .btn-ghost-dark:hover { border-color: rgba(255, 255, 255, 0.4); transform: translateY(-2px); }
 
