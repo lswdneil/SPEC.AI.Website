@@ -955,6 +955,17 @@ async function handleDiag(env) {
     workerVersion: VERSION,
     devMode: env.DEV_MODE === '1',
     mailFrom: String(env.MAIL_FROM || ''),
+    envTypes: {
+      RESEND_API_KEY: typeof env.RESEND_API_KEY,
+      ALIYUN_AK_ID: typeof env.ALIYUN_AK_ID,
+      ALIYUN_AK_SECRET: typeof env.ALIYUN_AK_SECRET,
+      JWT_SECRET: typeof env.JWT_SECRET,
+      WORKERS_GH_TOKEN: typeof env.WORKERS_GH_TOKEN,
+      DEV_MODE: typeof env.DEV_MODE,
+      ALIYUN_SMS_SIGN: typeof env.ALIYUN_SMS_SIGN,
+      DB: typeof env.DB
+    },
+    envKeys: Object.keys(env).sort(),
     resend: { keySet: !!raw, keyLen: raw.length, trimmedLen: rk.length, hasNewline: /[\r\n]/.test(raw), hasOuterSpace: raw !== rk },
     aliyun: { keyIdSet: !!env.ALIYUN_AK_ID, secretSet: !!env.ALIYUN_AK_SECRET, sign: String(env.ALIYUN_SMS_SIGN || ''), template: String(env.ALIYUN_SMS_TEMPLATE || ''), webhookSet: !!env.SMS_WEBHOOK_URL },
     resendApi: null
