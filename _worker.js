@@ -368,6 +368,8 @@ async function sendCode(env, target, purpose) {
   // 投递：优先邮件（RESEND_API_KEY），其次短信（阿里云短信认证 SendSmsVerifyCode，回退 SMS_WEBHOOK_URL）；均未配置则仅记录日志
   const rk = String(env.RESEND_API_KEY || '').trim();
   const red = (s) => { const t = String(s); return rk ? t.split(rk).join('***') : t; };
+  let reason = '';
+  let detail = '';
   if (rk && validEmail(target)) {
     const subject = purpose === 'register'
       ? '1号员工 注册验证码'
@@ -385,17 +387,16 @@ async function sendCode(env, target, purpose) {
       });
       if (res.ok) return { delivered: true };
       const body = await res.text().catch(() => '');
-      return { delivered: false, reason: 'resend_http_' + res.status, detail: red(body).slice(0, 300) };
+      reason = 'resend_http_' + res.status;
+      detail = red(body);
     } catch (e) {
       console.error('[auth] 邮件发送失败', String(e));
-      return { delivered: false, reason: 'resend_throw', detail: red(e && e.message ? e.message : e).slice(0, 300) };
+      reason = 'resend_throw';
+      detail = red(e && e.message ? e.message : e);
     }
+  } else if (validEmail(target)) {
+    reason = 'no_resend_key';
   }
-  if (!rk && validEmail(target)) {
-    return { delivered: false, reason: 'no_resend_key' };
-  }
-  let reason = '';
-  let detail = '';
   if (validPhone(target)) {
     // 阿里云"短信认证"通道（ALIYUN_AK_ID + ALIYUN_AK_SECRET 已配置时优先）
     if (env.ALIYUN_AK_ID && env.ALIYUN_AK_SECRET) {
