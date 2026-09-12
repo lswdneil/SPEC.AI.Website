@@ -366,14 +366,16 @@ async function sendCode(env, target, purpose) {
   ).bind(target, code, purpose, now() + CODE_TTL, now()).run();
 
   // 投递：优先邮件（RESEND_API_KEY），其次短信（阿里云短信认证 SendSmsVerifyCode，回退 SMS_WEBHOOK_URL）；均未配置则仅记录日志
-  if (env.RESEND_API_KEY && validEmail(target)) {
+  const rk = String(env.RESEND_API_KEY || '').trim();
+  const red = (s) => { const t = String(s); return rk ? t.split(rk).join('***') : t; };
+  if (rk && validEmail(target)) {
     const subject = purpose === 'register'
       ? '1号员工 注册验证码'
       : (purpose === 'reset' ? '1号员工 密码重置验证码' : '1号员工 登录验证码');
     try {
-      await fetch('https://api.resend.com/emails', {
+      const res = await fetch('https://api.resend.com/emails', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': 'Bearer ' + rk, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           from: env.MAIL_FROM || '1号员工 <noreply@spec-ai.cn>',
           to: [target],
@@ -381,21 +383,35 @@ async function sendCode(env, target, purpose) {
           text: `您的验证码是 ${code}，10 分钟内有效。`
         })
       });
-      return { delivered: true };
+      if (res.ok) return { delivered: true };
+      const body = await res.text().catch(() => '');
+      return { delivered: false, reason: 'resend_http_' + res.status, detail: red(body).slice(0, 300) };
     } catch (e) {
       console.error('[auth] 邮件发送失败', String(e));
+      return { delivered: false, reason: 'resend_throw', detail: red(e && e.message ? e.message : e).slice(0, 300) };
     }
   }
+  if (!rk && validEmail(target)) {
+    return { delivered: false, reason: 'no_resend_key' };
+  }
+  let reason = '';
+  let detail = '';
   if (validPhone(target)) {
     // 阿里云"短信认证"通道（ALIYUN_AK_ID + ALIYUN_AK_SECRET 已配置时优先）
     if (env.ALIYUN_AK_ID && env.ALIYUN_AK_SECRET) {
       try {
         const r = await sendSmsAliyun(env, target, code, purpose);
         if (r && r.delivered) return { delivered: true };
+        reason = 'aliyun_' + ((r && r.error) || 'unknown');
+        detail = (r && r.detail) ? String(r.detail) : '';
         console.error('[auth] 阿里云短信发送失败', r && r.error);
       } catch (e) {
+        reason = 'aliyun_throw';
+        detail = String(e && e.message ? e.message : e);
         console.error('[auth] 阿里云短信发送异常', String(e));
       }
+    } else if (!env.SMS_WEBHOOK_URL) {
+      reason = 'no_aliyun_key';
     }
     // 旧版 Webhook 通道（兼容已有配置）
     if (env.SMS_WEBHOOK_URL) {
@@ -407,12 +423,14 @@ async function sendCode(env, target, purpose) {
         });
         return { delivered: true };
       } catch (e) {
+        if (!reason) reason = 'webhook_throw';
+        if (!detail) detail = String(e && e.message ? e.message : e);
         console.error('[auth] 短信发送失败', String(e));
       }
     }
   }
   console.warn(`[auth] 验证码未投递（未配置邮件/短信通道）target=${target} code=${code}`);
-  return { delivered: false, devCode: env.DEV_MODE === '1' ? code : undefined };
+  return { delivered: false, reason: reason || 'no_channel', detail: detail ? String(detail).slice(0, 300) : undefined, devCode: env.DEV_MODE === '1' ? code : undefined };
 }
 
 async function consumeCode(env, target, code, purpose) {
@@ -519,6 +537,13 @@ async function handleApi(request, env, ctx, path) {
   }
   if (path === '/api/auth/bind' && method === 'POST') {
     return handleBind(request, env);
+  }
+
+  // 临时诊断 (需登录): 只回布尔/长度/状态码, 绝不回密钥值
+  if (path === '/api/auth/diag' && method === 'GET') {
+    const user = await requireUser(request, env);
+    if (!user) return fail('unauthorized', 401);
+    return handleDiag(env);
   }
 
   // 账户信息（需登录）
@@ -914,8 +939,38 @@ async function handleSendCode(request, env) {
   const r = await sendCode(env, target, purpose);
   if (r.limited) return fail('too_many_requests', 429);
   const resp = { delivered: !!r.delivered };
+  if (!r.delivered) {
+    if (r.reason) resp.reason = String(r.reason).slice(0, 60);
+    if (r.detail) resp.detail = String(r.detail).slice(0, 300);
+  }
   if (env.DEV_MODE === '1' && r.devCode) resp.devCode = r.devCode;
   return ok(resp);
+}
+
+async function handleDiag(env) {
+  const raw = String(env.RESEND_API_KEY || '');
+  const rk = raw.trim();
+  const red = (s) => { const t = String(s); return rk ? t.split(rk).join('***') : t; };
+  const out = {
+    workerVersion: VERSION,
+    devMode: env.DEV_MODE === '1',
+    mailFrom: String(env.MAIL_FROM || ''),
+    resend: { keySet: !!raw, keyLen: raw.length, trimmedLen: rk.length, hasNewline: /[\r\n]/.test(raw), hasOuterSpace: raw !== rk },
+    aliyun: { keyIdSet: !!env.ALIYUN_AK_ID, secretSet: !!env.ALIYUN_AK_SECRET, sign: String(env.ALIYUN_SMS_SIGN || ''), template: String(env.ALIYUN_SMS_TEMPLATE || ''), webhookSet: !!env.SMS_WEBHOOK_URL },
+    resendApi: null
+  };
+  if (rk) {
+    try {
+      const r = await fetch('https://api.resend.com/domains', { headers: { Authorization: 'Bearer ' + rk } });
+      const txt = await r.text().catch(() => '');
+      let domains = null;
+      try { const j = JSON.parse(txt); domains = Array.isArray(j && j.data) ? j.data.map(x => ({ name: x.name, status: x.status })) : null; } catch (e) { domains = null; }
+      out.resendApi = { status: r.status, ok: r.ok, domains, body: domains ? null : red(txt).slice(0, 300) };
+    } catch (e) {
+      out.resendApi = { status: 0, ok: false, error: String(e && e.message ? e.message : e).slice(0, 300) };
+    }
+  }
+  return ok(out);
 }
 
 async function handleResetPassword(request, env) {
