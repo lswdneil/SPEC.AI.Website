@@ -15,12 +15,12 @@
   "employee2": {
     "name": "2号员工",
     "nameEn": "SpecAi.No2.Agent",
-    "version": "0.3.4",
+    "version": "0.3.7",
     "windows": {
-      "name": "SpecAi.No2.Agent_0.3.4_x64_en-US.msi",
-      "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai/SpecAi.No2.Agent_0.3.4_x64_en-US.msi",
-      "size": "46.3 MB",
-      "sha256": "3dbdb4543ff800961e1c0a0a6b333ed10056d1e670a1245d919456d83e796413"
+      "name": "SpecAi.No2.Agent_0.3.7_x64_en-US.msi",
+      "url": "https://specai-agent-no1-installer.oss-cn-shanghai.aliyuncs.com/specai/SpecAi.No2.Agent_0.3.7_x64_en-US.msi",
+      "size": "70.5 MB",
+      "sha256": "c816d66a7e649c0fbdbb9986be5821d3663536d19754a64bd058252238690eec"
     }
   },
   "platforms": {
